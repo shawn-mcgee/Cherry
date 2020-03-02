@@ -139,26 +139,49 @@ public class Editor extends Scene {
 				}
 			
 			Vector2 pixel = localToPixel(brush.local);			
-			context.color(Color.ORANGE);
-			
+			int
+				i = (int)brush.local.x(),
+				j = (int)brush.local.y();			
 			switch(brush.mode) {
 				case TILE:
+					context.stroke(2);
+					context.color(Color.BLACK);
 					context.rect(
-					pixel.x() - HALF_W,
-					pixel.y() - HALF_H,
-					FULL_W,
-					FULL_H,
-					false
-					);
+							pixel.x() - HALF_W,
+							pixel.y() - HALF_H,
+							FULL_W,
+							FULL_H,
+							false
+							);
+					context.stroke(1);
+					context.color(room.get_tile(i, j) != null ? Color.RED : Color.ORANGE);
+					context.rect(
+							pixel.x() - HALF_W,
+							pixel.y() - HALF_H,
+							FULL_W,
+							FULL_H,
+							false
+							);
 					break;
 				case WALL:
+					context.stroke(2);
+					context.color(Color.BLACK);
 					context.rect(
-					pixel.x() - HALF_W,
-					pixel.y() - HALF_H - FULL_H,
-					FULL_W,
-					FULL_H * 2,
-					false
-					);
+							pixel.x() - HALF_W,
+							pixel.y() - HALF_H - FULL_H,
+							FULL_W,
+							FULL_H * 2,
+							false
+							);
+					context.stroke(1);
+					context.color(room.get_wall(i, j) != null ? Color.RED : Color.ORANGE);
+					context.rect(
+							pixel.x() - HALF_W,
+							pixel.y() - HALF_H - FULL_H,
+							FULL_W,
+							FULL_H * 2,
+							false
+							);
 					break;
 			}
 			
