@@ -25,7 +25,7 @@ public class Cherry {
 		Engine.getConfiguration().set(Engine.CANVAS_BACKGROUND, Vector.fromColor4i(Color.BLACK));
 		Engine.getConfiguration().set(Engine.WINDOW_DEVICE, 0);
 		
-		Engine.getConfiguration().set(Engine.DEBUG, true);
+		Engine.getConfiguration().set(Engine.DEBUG, false);
 		
 		System.out.println(VERSION);
 		

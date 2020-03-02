@@ -138,10 +138,33 @@ public class Editor extends Scene {
 					}
 				}
 			
-			context.render(brush);
+			Vector2 pixel = localToPixel(brush.local);			
+			context.color(Color.ORANGE);
+			
+			switch(brush.mode) {
+				case TILE:
+					context.rect(
+					pixel.x() - HALF_W,
+					pixel.y() - HALF_H,
+					FULL_W,
+					FULL_H,
+					false
+					);
+					break;
+				case WALL:
+					context.rect(
+					pixel.x() - HALF_W,
+					pixel.y() - HALF_H - FULL_H,
+					FULL_W,
+					FULL_H * 2,
+					false
+					);
+					break;
+			}
 			
 			
 		context.pop();
+		context.render(brush);
 	}
 	
 	@Override
@@ -256,29 +279,21 @@ public class Editor extends Scene {
 		@Override
 		public void onRender(RenderContext context) {			
 			switch(mode) {
-				case TILE:
+				case TILE: {
 					if(tile != null) {
-						tile.sprite.center(pixel.x(), pixel.y() + HALF_H);
-						context.render(tile.sprite);
+						tile.sprite.center(HALF_W, FULL_H);
+						context.render(tile.sprite);						
 					}
-					break;
-				case WALL:
+				} break;
+				case WALL: {
 					if(wall != null) {
-						wall.sprite.center(pixel.x(), pixel.y() - HALF_H);
+						wall.sprite.center(HALF_W, FULL_H);
 						context.render(wall.sprite);
 					}
-					break;
+				} break;
 			}
 			
-			Vector2 pixel = localToPixel(local);			
-			context.color(Color.ORANGE);
-			context.rect(
-					pixel.x() - HALF_W,
-					pixel.y() - HALF_H,
-					FULL_W,
-					FULL_H,
-					false
-					);
+			
 		}		
 	}
 	
