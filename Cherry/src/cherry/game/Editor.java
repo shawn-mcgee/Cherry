@@ -1,13 +1,10 @@
 package cherry.game;
 
-import static cherry.game.Tile.HALF_H;
-import static cherry.game.Tile.localToPixel;
-import static cherry.game.Tile.pixelToLocal;
+import static cherry.game.Tile.*;
 
-import java.awt.Component;
+import java.awt.Color;
 import java.awt.event.KeyEvent;
 
-import javax.swing.Icon;
 import javax.swing.JOptionPane;
 
 import blue.core.Engine;
@@ -142,12 +139,30 @@ public class Editor extends Scene {
 				}
 			
 			context.render(brush);
+			
+			
 		context.pop();
 	}
 	
 	@Override
 	public void onUpdate(UpdateContext context) {
 		context.update(view);
+		int
+			i = (int)brush.local.x(),
+			j = (int)brush.local.y();
+		
+		if(Input.isBtnDn(Input.BTN_1)) {
+			switch(brush.mode) {
+				case TILE: room.set_tile(i, j, brush.tile.name); break;
+				case WALL: room.set_wall(i, j, brush.wall.name); break;
+			}
+		}
+		if(Input.isBtnDn(Input.BTN_3)) {
+			switch(brush.mode) {
+				case TILE: room.set_tile(i, j, null); break;
+				case WALL: room.set_wall(i, j, null); break;
+			}
+		}
 	}
 	
 	@Override
@@ -161,48 +176,18 @@ public class Editor extends Scene {
 				break;
 			case Input.KEY_SPACE:
 				show_grid = !show_grid;
+				break;
+				
 		}			
-	}
-	
-	@Override
-	public void onBtnDn(int btn) {
-		int
-			i = (int)brush.local.x(),
-			j = (int)brush.local.y();
-		
-		if(Input.isBtnDn(Input.BTN_1)) {
-			switch(brush.mode) {
-				case TILE: room.set_tile(i, j, brush.tile.name); break;
-				case WALL: room.set_wall(i, j, brush.wall.name); break;
-			}
-		}
-		if(Input.isBtnDn(Input.BTN_3)) {
-			switch(brush.mode) {
-				case TILE: room.set_tile(i, j, null); break;
-				case WALL: room.set_wall(i, j, null); break;
-			}
-		}
 	}	
 	
 	@Override
 	public void onMouseMoved(Vector2 mouse) {
-		brush.set_pixel(view.mouseToPixel(mouse));
-		int
-			i = (int)brush.local.x(),
-			j = (int)brush.local.y();
+		Vector2 pixel = view.mouseToPixel(mouse);
 		
-		if(Input.isBtnDn(Input.BTN_1)) {
-			switch(brush.mode) {
-				case TILE: room.set_tile(i, j, brush.tile.name); break;
-				case WALL: room.set_wall(i, j, brush.wall.name); break;
-			}
-		}
-		if(Input.isBtnDn(Input.BTN_3)) {
-			switch(brush.mode) {
-				case TILE: room.set_tile(i, j, null); break;
-				case WALL: room.set_wall(i, j, null); break;
-			}
-		}
+		
+		brush.set_pixel(new Vector2(pixel.x(), pixel.y() + HALF_H));
+		
 		
 		if(Input.isBtnDn(Input.BTN_2)) {
 			float
@@ -262,13 +247,14 @@ public class Editor extends Scene {
 			int
 				i = (int)local.x(),
 				j = (int)local.y();
+			//pixel = localToPixel(i, j);
 			
 			this.local.set(i , j);
 			this.pixel.set(pixel);
 		}
 
 		@Override
-		public void onRender(RenderContext context) {
+		public void onRender(RenderContext context) {			
 			switch(mode) {
 				case TILE:
 					if(tile != null) {
@@ -282,7 +268,17 @@ public class Editor extends Scene {
 						context.render(wall.sprite);
 					}
 					break;
-			}			
+			}
+			
+			Vector2 pixel = localToPixel(local);			
+			context.color(Color.ORANGE);
+			context.rect(
+					pixel.x() - HALF_W,
+					pixel.y() - HALF_H,
+					FULL_W,
+					FULL_H,
+					false
+					);
 		}		
 	}
 	
