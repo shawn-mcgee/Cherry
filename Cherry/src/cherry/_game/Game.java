@@ -7,7 +7,7 @@ import blue.core.Input;
 import blue.core.Scene;
 import blue.geom.Vector;
 import blue.geom.Vector2;
-import cherry.core.View;
+import cherry.game.Camera;
 
 public class Game extends Scene {
 	private static final long 
@@ -17,8 +17,8 @@ public class Game extends Scene {
 		ROOM_2 = new Room(128,  32, "Room 2"),
 		ROOM_3 = new Room( 32, 128, "Room 3"),
 		ROOM_4 = new Room( 64,  64, "Room 4");
-	public final View
-		camera = new View();
+	public final Camera
+		camera = new Camera();
 	public final Vector2.Mutable
 		mouse = new Vector2.Mutable();
 	public Room

@@ -6,56 +6,39 @@ import java.util.Map;
 import blue.game.Sprite;
 import blue.geom.Vector;
 import blue.geom.Vector2;
-import cherry.Cherry.Dither;
 
 public class Tile {
-	private static final Dither
-		DITHER = new Dither();
+	protected static final Map<String, Tile>
+		TILE_INDEX = new HashMap<>(),
+		WALL_INDEX = new HashMap<>();
 	public static final int
-		FULL_W = 64,
-		FULL_H = 32,
+		FULL_W = 128,
+		FULL_H = 64,
 		HALF_W = FULL_W / 2,
 		HALF_H = FULL_H / 2;
 	
-	public String
-		name,
-		path;
-	public Sprite
+	public final String
+		string;
+	public final Sprite
 		sprite;
 	
-	private Tile(String name, String path, Sprite sprite) {
-		this.name = name;
-		this.path = path;
+	private Tile(String string, Sprite sprite) {
+		this.string = string;
 		this.sprite = sprite;
 	}
 	
-	private static final Map<String, Tile>
-		NAME_INDEX = new HashMap<>(),
-		PATH_INDEX = new HashMap<>();
-	
-	public static Tile getByName(String name) {
-		Tile tile = NAME_INDEX.get(name);
+	public static final Tile load_tile(String string) {
+		Tile tile = TILE_INDEX.get(string);
 		if(tile == null)
-			throw new IllegalArgumentException("ERROR [cherry.game.Tile]: A Tile with name '" + name + "' does not exist.");
+			TILE_INDEX.put(string, tile = new Tile(string, Sprite.fromName(string, null)));
 		return tile;
 	}
 	
-	public static Tile getByPath(String path) {
-		Tile tile = PATH_INDEX.get(path);
-		if(tile == null)
-			throw new IllegalArgumentException("ERROR [cherry.game.Tile]: A Tile with path '" + path + "' does not exist.");
-		return tile;
-	}
-	
-	public static Tile load(String name, String path) {
-		if(NAME_INDEX.containsKey(name))
-			throw new IllegalArgumentException("A Tile with name '" + name + "' already exists.");
-		if(PATH_INDEX.containsKey(path))
-			throw new IllegalArgumentException("A Tile with path '" + path + "' already exists.");
-		Tile tile = new Tile(name, path, Sprite.load(name, path, FULL_W, FULL_H * 2));
-		NAME_INDEX.put(name, tile);
-		PATH_INDEX.put(path, tile);
-		return tile;
+	public static final Tile load_wall(String string) {
+		Tile wall = WALL_INDEX.get(string);
+		if(wall == null)
+			WALL_INDEX.put(string, wall = new Tile(string, Sprite.fromName(string, null)));
+		return wall;
 	}	
 	
 	public static final Vector2 localToPixel(float i, float j) {

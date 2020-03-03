@@ -1,0 +1,8 @@
+name=debug,path=debug.png,w=128,h=128
+name=sprite0,path=sprite0.png,w=128,h=64
+name=sprite1,path=sprite1.png,w=128,h=64
+name=tile_cursor,path=tile_cursor.png,w=132,h=68
+name=wall_cursor,path=wall_cursor.png,w=132,h=132
+
+name=marble_slab_1,path=marble_slab_1.png,w=128,h=128
+name=marble_slab_2,path=marble_slab_2.png,w=128,h=128

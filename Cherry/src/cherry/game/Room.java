@@ -55,27 +55,27 @@ public class Room implements Renderable, Updateable {
 		}
 	}
 	
-	public void set_tile(int i, int j, String name) {
+	public void set_tile(int i, int j, String string) {
 		Cell cell = get_cell(i, j);
 		if(cell != null) {
-			if(name != null) {
+			if(string != null) {
 				if(cell.tile != null)
-					if(cell.tile.name.equals(name))
+					if(cell.tile.string.equals(string))
 						return;
-				cell.tile = Tile.getByName(name);
+				cell.tile = Tile.load_tile(string);
 			} else
 				cell.tile = null;
 		}
 	}
 	
-	public void set_wall(int i, int j, String name) {
+	public void set_wall(int i, int j, String string) {
 		Cell cell = get_cell(i, j);
 		if(cell != null) {
-			if(name != null) {
+			if(string != null) {
 				if(cell.wall != null)
-					if(cell.wall.name.equals(name))
+					if(cell.wall.string.equals(string))
 						return;				
-				cell.wall = Tile.getByName(name);	
+				cell.wall = Tile.load_wall(string);
 			} else
 				cell.wall = null;
 		}

@@ -1,11 +1,11 @@
-package cherry.core;
+package cherry.game;
 
 import blue.core.Renderable;
 import blue.core.Updateable;
 import blue.geom.Vector;
 import blue.geom.Vector2;
 
-public class View implements Renderable, Updateable {
+public class Camera implements Renderable, Updateable {
 	public final Vector2.Mutable
 		camera_t = new Vector2.Mutable(0f, 0f),
 		camera_s = new Vector2.Mutable(1f, 1f),

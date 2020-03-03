@@ -1,13 +1,13 @@
 package cherry;
 
 import java.awt.Color;
-
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import java.util.LinkedList;
+import java.util.List;
 
 import blue.core.Engine;
 import blue.game.Sprite;
 import blue.geom.Vector;
+import blue.util.Util;
 import blue.util.Version;
 import cherry.game.Editor;
 import cherry.game.Tile;
@@ -16,32 +16,72 @@ public class Cherry {
 	public static final Version
 		VERSION = new Version("Cherry", 0, 0, 1);
 	
-	public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
-		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+	public static void main(String[] args) {		
+		System.out.println(VERSION);
 		
-		Engine.getConfiguration().set(Engine.WINDOW_TITLE, VERSION);
+		Engine.getConfiguration().load("engine.cfg");
 		
 		Engine.getConfiguration().set(Engine.CANVAS_FOREGROUND, Vector.fromColor4i(Color.BLACK));
 		Engine.getConfiguration().set(Engine.CANVAS_BACKGROUND, Vector.fromColor4i(Color.BLACK));
-		Engine.getConfiguration().set(Engine.WINDOW_DEVICE, 0);
+		Engine.getConfiguration().set(Engine.WINDOW_TITLE, VERSION);
+		Engine.getConfiguration().set(Engine.DEBUG, true);
 		
-		Engine.getConfiguration().set(Engine.DEBUG, false);
+		load_sprites("sprites/index");
+		index_tiles("tiles/index");
+		index_walls("walls/index");
 		
-		System.out.println(VERSION);
+		Engine.init();	
 		
-		Engine.init();
-		
-		Tile.load("Debug", "debug.png");
 		Engine.setScene(new Editor());
 	}
 	
-	public static class Dither implements Sprite.Effect {		
-		@Override
-		public void filter(int[] frame_data, int frame_w, int frame_h) {
-			for(int i = 0; i < frame_w; i ++)
-				for(int j = 0; j < frame_h; j ++)
-					if(((i & j) & 1) == 0)
-						frame_data[frame_w * j + i] = 0;					
-		}		
+	public static final void load_sprites(String index) {
+		System.out.print("[load_sprites '" + index + "']...");
+		List<String> args0 = Util.parseFromFile(index, new LinkedList<String>());
+		for(String arg0: args0) {
+			if(!arg0.trim().isEmpty()) {
+				String[] args1 = arg0.split("\\,");
+				String
+					name = null,
+					path = null;
+				int
+					w = 0,
+					h = 0;
+				
+				for(String arg1: args1) {
+					String[] args2 = arg1.split("\\=");
+					if(args2.length > 1) {
+						String
+							var = args2[0].trim(),
+							val = args2[1].trim();
+						switch(var) {
+							case "name": name = val; break;
+							case "path": path = val; break;
+							case "w": w = Util.stringToInt(val); break;
+							case "h": h = Util.stringToInt(val); break;
+						}					
+					}				
+				}
+				
+				Sprite.load(name, path, w, h);
+			}
+		}
+		System.out.println("done");
+	}
+	
+	public static final void index_tiles(String index) {
+		System.out.print("[index_tiles '" + index + "']...");
+		List<String> list = Util.parseFromFile(index, new LinkedList<String>());
+		for(String string: list)
+			Tile.load_tile(string);
+		System.out.println("done");
+	}
+	
+	public static final void index_walls(String index) {
+		System.out.print("[index_walls '" + index + "']...");
+		List<String> list = Util.parseFromFile(index, new LinkedList<String>());
+		for(String string: list)
+			Tile.load_wall(string);
+		System.out.println("done");
 	}
 }
