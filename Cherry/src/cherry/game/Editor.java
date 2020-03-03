@@ -1,5 +1,12 @@
 package cherry.game;
 
+import static cherry.game.Room.decrement;
+import static cherry.game.Room.increment;
+import static cherry.game.Room.mirror_x;
+import static cherry.game.Room.mirror_y;
+import static cherry.game.Room.offset;
+import static cherry.game.Room.rotate_l;
+import static cherry.game.Room.rotate_r;
 import static cherry.game.Tile.HALF_H;
 import static cherry.game.Tile.localToPixel;
 import static cherry.game.Tile.pixelToLocal;
@@ -56,8 +63,11 @@ public class Editor extends Scene {
 	protected Sprite
 		brush_sprite;
 	
+	protected java.awt.FileDialog
+		file_dialog;
+	
 	public Editor() {
-		//do nothing
+		file_dialog = new java.awt.FileDialog((java.awt.Dialog)null);
 	}
 	
 	@Override
@@ -74,7 +84,7 @@ public class Editor extends Scene {
 		
 		camera.tween.set(.001f, .001f);
 		
-		brush_string = "marble_slab_2";
+		brush_string = "debug";
 		brush_sprite = Sprite.fromName(brush_string, null);
 	}
 	
@@ -92,8 +102,8 @@ public class Editor extends Scene {
 					);
 			context.sca(camera.camera_s);
 			
-			for(int j = 0; j < room.room_h(); j ++)
-				for(int i = 0; i < room.room_w(); i ++) {
+			for(int j = 0; j < room.h(); j ++)
+				for(int i = 0; i < room.w(); i ++) {
 					Vector2 pixel = localToPixel(i, j);
 					
 					if(show_grid) {
@@ -166,15 +176,67 @@ public class Editor extends Scene {
 		}
 	}
 	
+	public void save_room() {
+		file_dialog.setMode(java.awt.FileDialog.SAVE);
+		file_dialog.setVisible(true);
+		
+		String path = file_dialog.getFile();
+		if(path != null)
+			Room.save(room, path);
+	}
+	
+	public void open_room() {
+		file_dialog.setMode(java.awt.FileDialog.LOAD);
+		file_dialog.setVisible(true);
+		
+		String path = file_dialog.getFile();
+		if(path != null)
+			Room.open(room, path);
+	}
+	
+	public void new_room() {
+		Room.resize(
+				room, 
+				Room.DEFAULT_ROOM_W, 
+				Room.DEFAULT_ROOM_H
+				);
+		room.clear();
+	}
+	
+	
+	
 	@Override
 	public void onKeyDn(int key) {
-		switch(key) {
-			case Input.KEY_G: show_grid  = !show_grid;  break;
-			case Input.KEY_T: show_tiles = !show_tiles; break;
-			case Input.KEY_W: show_walls = !show_walls; break;
-			case Input.KEY_TAB:
-				brush_mode ^= 1;
-		}		
+		if(Input.isKeyDn(Input.KEY_L_CTRL)) {
+			switch(key) {
+				case Input.KEY_S: save_room(); break;
+				case Input.KEY_O: open_room(); break;
+				case Input.KEY_N: new_room(); break;				
+			}
+		} else if(Input.isKeyDn(Input.KEY_L_SHIFT)) {
+			switch(key) {
+				case Input.KEY_EQUALS: increment(room); break;
+				case Input.KEY_MINUS : decrement(room); break;
+				
+				case Input.KEY_UP_ARROW: offset(room, 0, -1); break;
+				case Input.KEY_DN_ARROW: offset(room, 0,  1); break;
+				case Input.KEY_L_ARROW: offset(room, -1, 0); break;
+				case Input.KEY_R_ARROW: offset(room,  1, 0); break;
+
+				case Input.KEY_Q: rotate_l(room); break;
+				case Input.KEY_E: rotate_r(room); break;
+
+				case Input.KEY_X: mirror_x(room); break;
+				case Input.KEY_Y: mirror_y(room); break;
+			}
+		} else
+			switch(key) {
+				case Input.KEY_G: show_grid  = !show_grid;  break;
+				case Input.KEY_T: show_tiles = !show_tiles; break;
+				case Input.KEY_W: show_walls = !show_walls; break;
+				case Input.KEY_TAB:
+					brush_mode ^= 1;
+			}		
 	}	
 	
 	@Override

@@ -14,7 +14,7 @@ import cherry.game.Tile;
 
 public class Cherry {
 	public static final Version
-		VERSION = new Version("Cherry", 0, 0, 1);
+		VERSION = new Version("Cherry", 0, 1, 0);
 	
 	public static void main(String[] args) {		
 		System.out.println(VERSION);
@@ -30,7 +30,7 @@ public class Cherry {
 		index_tiles("tiles/index");
 		index_walls("walls/index");
 		
-		Engine.init();	
+		Engine.init();
 		
 		Engine.setScene(new Editor());
 	}

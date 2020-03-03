@@ -31,7 +31,11 @@ public class Cell implements Renderable, Updateable {
 	
 	public float x() { return pixel.x(); }
 	public float y() { return pixel.y(); }
-
+	
+	public void clear() {
+		tile = null;
+		wall = null;
+	}
 
 	@Override
 	public void onRender(RenderContext context) {
