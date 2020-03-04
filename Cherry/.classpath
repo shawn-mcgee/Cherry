@@ -6,6 +6,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="lib/Blue.jar" sourcepath="lib/Blue.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Blue"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

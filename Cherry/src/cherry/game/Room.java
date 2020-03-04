@@ -37,33 +37,27 @@ public class Room implements Renderable, Updateable {
 	public int w() { return w; }
 	public int h() { return h; }
 	
-	public void clear() {
-		for(int i = 0; i < w; i ++)
-			for(int j = 0; j < h; j ++)
-				grid[i][j].clear();
-	}
-	
-	public void set_tile(int i, int j, String string) {
+	public void set_tile(int i, int j, Tile tile) {
 		Cell cell = get_cell(i, j);
 		if(cell != null) {
-			if(string != null) {
+			if(tile != null) {
 				if(cell.tile != null)
-					if(cell.tile.string.equals(string))
+					if(cell.tile.string.equals(tile.string))
 						return;
-				cell.tile = Tile.load_tile(string);
+				cell.tile = tile;
 			} else
 				cell.tile = null;
 		}
 	}
 	
-	public void set_wall(int i, int j, String string) {
+	public void set_wall(int i, int j, Tile wall) {
 		Cell cell = get_cell(i, j);
 		if(cell != null) {
-			if(string != null) {
+			if(wall != null) {
 				if(cell.wall != null)
-					if(cell.wall.string.equals(string))
-						return;				
-				cell.wall = Tile.load_wall(string);
+					if(cell.wall.string.equals(wall.string))
+						return;
+				cell.wall = wall;
 			} else
 				cell.wall = null;
 		}
@@ -96,6 +90,12 @@ public class Room implements Renderable, Updateable {
 			return null;
 	}
 	
+	public void clear() {
+		for(int i = 0; i < w; i ++)
+			for(int j = 0; j < h; j ++)
+				grid[i][j].clear();
+	}
+	
 	@Override
 	public void onRender(RenderContext context) {
 		for(int j = 0; j < h; j ++)
@@ -108,111 +108,111 @@ public class Room implements Renderable, Updateable {
 		
 	}
 	
-	public static void resize(Room room, int w, int h) {
+	public void resize(int w, int h) {
 		int
 			_w = w > 0 ? w : 1,
 			_h = h > 0 ? h : 1;		
-		if(_w != room.w || _h != room.h) {
+		if(_w != this.w || _h != this.h) {
 			int
-				min_w = Math.min(_w, room.w),
-				min_h = Math.min(_h, room.h);
+				min_w = Math.min(_w, this.w),
+				min_h = Math.min(_h, this.h);
 			Cell[][]
 				grid = new Cell[_w][_h];
 			for(int i = 0; i < _w; i ++)
 				for(int j = 0; j < _h; j ++) {
 					if(i < min_w && j < min_h)
-						grid[i][j] = room.grid[i][j];
+						grid[i][j] = this.grid[i][j];
 					else
-						grid[i][j] = new Cell(i, j, room);
+						grid[i][j] = new Cell(i, j, this);
 				}
-			room.w = _w;
-			room.h = _h;
-			room.grid = grid;
+			this.w = _w;
+			this.h = _h;
+			this.grid = grid;
 		}
 	}
 	
-	public static void increment(Room room) {
-		resize(room, room.w + 1, room.h + 1);
+	public void increment() {
+		resize(this.w + 1, this.h + 1);
 	}
 	
-	public static void decrement(Room room) {
-		resize(room, room.w - 1, room.h - 1);
+	public void decrement() {
+		resize(this.w - 1, this.h - 1);
 	}
 	
-	public static void offset(Room room, int dx, int dy) {
+	public void translate(int dx, int dy) {
 		Cell[][] 
-			grid = new Cell[room.w][room.h];
-		for(int i = 0; i < room.w; i ++)
-			for(int j = 0; j < room.h; j ++) {
+			grid = new Cell[this.w][this.h];
+		for(int i = 0; i < this.w; i ++)
+			for(int j = 0; j < this.h; j ++) {
 				int
-					a = (i + dx + room.w) % room.w,
-					b = (j + dy + room.h) % room.h;			
-				grid[a][b] = room.grid[i][j];
+					a = (i + dx + this.w) % this.w,
+					b = (j + dy + this.h) % this.h;			
+				grid[a][b] = this.grid[i][j];
 			}
-		room.grid = grid;
+		this.grid = grid;
 	}
 	
-	public static void rotate_r(Room room) {
+	public void rotate_r() {
 		int
-			_w = room.w,
-			_h = room.h;
+			_w = this.w,
+			_h = this.h;
 		Cell[][] 
 			grid = new Cell[_h][_w];
 		for(int i = 0; i < _w; i ++)
 			for(int j = 0; j < _h; j ++) {
-				grid[_h - j - 1][i] = room.grid[i][j];
+				grid[_h - j - 1][i] = this.grid[i][j];
 			}
-		room.w = _h;
-		room.h = _w;
-		room.grid = grid;
+		this.w = _h;
+		this.h = _w;
+		this.grid = grid;
 	}
 	
-	public static void rotate_l(Room room) {
+	public void rotate_l() {
 		int
-			_w = room.w,
-			_h = room.h;
+			_w = this.w,
+			_h = this.h;
 		Cell[][]
 			grid = new Cell[_h][_w];
 		for(int i = 0; i < _w; i ++)
 			for(int j = 0; j < _h; j ++) {
-				grid[j][_w - i - 1] = room.grid[i][j];
+				grid[j][_w - i - 1] = this.grid[i][j];
 			}
-		room.w = _h;
-		room.h = _w;
-		room.grid = grid;
+		this.w = _h;
+		this.h = _w;
+		this.grid = grid;
 	}
 	
-	public static void mirror_y(Room room) {
+	public void mirror_y() {
 		Cell[][]
-			grid = new Cell[room.w][room.h];
-		for(int i = 0; i < room.w; i ++)
-			for(int j = 0; j < room.h; j ++) {
-				grid[room.w - i - 1][j] = room.grid[i][j];
+			grid = new Cell[this.w][this.h];
+		for(int i = 0; i < this.w; i ++)
+			for(int j = 0; j < this.h; j ++) {
+				grid[this.w - i - 1][j] = this.grid[i][j];
 			}
-		room.grid = grid;
+		this.grid = grid;
 	}
 	
-	public static void mirror_x(Room room) {
+	public void mirror_x() {
 		Cell[][]
-			grid = new Cell[room.w][room.h];
-		for(int i = 0; i < room.w; i ++)
-			for(int j = 0; j < room.h; j ++) {
-				grid[i][room.h - j - 1] = room.grid[i][j];
+			grid = new Cell[this.w][this.h];
+		for(int i = 0; i < this.w; i ++)
+			for(int j = 0; j < this.h; j ++) {
+				grid[i][this.h - j - 1] = this.grid[i][j];
 			}
-		room.grid = grid;
+		this.grid = grid;
 	}
 	
-	public static void save(Room room, String path) {
+	public void save(String path) {
 		List<String> list = new LinkedList<>();
-		for(int i = 0; i < room.w; i ++)
-			for(int j = 0; j < room.h; j ++) {
+		for(int i = 0; i < this.w; i ++)
+			for(int j = 0; j < this.h; j ++) {
 				String
 					cell = i + ", " + j + ":",
 					data = "";
-				Tile tile = room.get_tile(i, j);
+				Tile tile = this.get_tile(i, j);
 				if(tile != null)
 					data += (data.isEmpty() ? "" : ", ") + "tile=" + tile.string;
-				Tile wall = room.get_wall(i, j);
+				Tile wall = this.get_wall(i, j);
 				if(wall != null)
 					data += (data.isEmpty() ? "" : ", ") + "wall=" + wall.string;
 				
@@ -223,9 +223,9 @@ public class Room implements Renderable, Updateable {
 		Util.printToFile(path, false, list);
 	}
 	
-	public static void open(Room room, String path) {
+	public void load(String path) {
 		List<String> list = Util.parseFromFile(path, new LinkedList<>());		
-		room.clear();
+		this.clear();
 		
 		for(String line: list) {
 			if(!line.trim().isEmpty()) {
@@ -258,16 +258,15 @@ public class Room implements Renderable, Updateable {
 					}
 					
 					if(tile != null || wall != null) {	
-						if(i >= room.w || j >= room.w)
-							resize(
-									room, 
-									Math.max(room.w, i + 1), 
-									Math.max(room.h, j + 1)
+						if(i >= this.w || j >= this.w)
+							resize( 
+									Math.max(this.w, i + 1), 
+									Math.max(this.h, j + 1)
 									);
 						if(tile != null)
-							room.set_tile(i, j, tile);
+							this.set_tile(i, j, Tile.load_as_tile(tile));
 						if(wall != null)
-							room.set_wall(i, j, wall);
+							this.set_wall(i, j, Tile.load_as_wall(wall));
 					}
 				}
 			}

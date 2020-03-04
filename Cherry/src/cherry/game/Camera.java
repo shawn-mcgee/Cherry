@@ -1,45 +1,27 @@
 package cherry.game;
 
-import blue.core.Renderable;
-import blue.core.Updateable;
 import blue.geom.Vector;
 import blue.geom.Vector2;
 
-public class Camera implements Renderable, Updateable {
+public class Camera {
 	public final Vector2.Mutable
 		camera_t = new Vector2.Mutable(0f, 0f),
 		camera_s = new Vector2.Mutable(1f, 1f),
 		target_t = new Vector2.Mutable(0f, 0f),
 		target_s = new Vector2.Mutable(1f, 1f),
 		tween = new Vector2.Mutable();
-	public Renderable
-		renderable;
-
-	@Override
-	public void onRender(RenderContext context) {
-		context.push();
-			context.mov(
-					(int)(camera_t.x() * 1  ) / 1  ,
-					(int)(camera_t.y() * 1  ) / 1  );
-			context.sca(
-					(int)(camera_s.x() * 100) / 100,
-					(int)(camera_s.y() * 100) / 100);
-			context.render(renderable);		
-		context.pop();
-	}
 	
-	@Override
-	public void onUpdate(UpdateContext context) {
+	public void tween(float dt) {
 		if(!camera_t.equals(target_t)) {
 			float
-				dx = (target_t.x() - camera_t.x()) * (1f - (float)Math.pow(tween.x(), context.fixed_dt)),
-				dy = (target_t.y() - camera_t.y()) * (1f - (float)Math.pow(tween.y(), context.fixed_dt));
+				dx = (target_t.x() - camera_t.x()) * (1f - (float)Math.pow(tween.x(), dt)),
+				dy = (target_t.y() - camera_t.y()) * (1f - (float)Math.pow(tween.y(), dt));
 			Vector.m_add(camera_t, dx, dy);
 		}
 		if(!camera_s.equals(target_s)) {
 			float
-				dx = (target_s.x() - camera_s.x()) * (1f - (float)Math.pow(tween.x(), context.fixed_dt)),
-				dy = (target_s.y() - camera_s.y()) * (1f - (float)Math.pow(tween.y(), context.fixed_dt));
+				dx = (target_s.x() - camera_s.x()) * (1f - (float)Math.pow(tween.x(), dt)),
+				dy = (target_s.y() - camera_s.y()) * (1f - (float)Math.pow(tween.y(), dt));
 			Vector.m_add(camera_s, dx, dy);
 		}
 	}

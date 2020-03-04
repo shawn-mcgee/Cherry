@@ -14,7 +14,7 @@ import cherry.game.Tile;
 
 public class Cherry {
 	public static final Version
-		VERSION = new Version("Cherry", 0, 1, 0);
+		VERSION = new Version("Cherry", 0, 1, 1);
 	
 	public static void main(String[] args) {		
 		System.out.println(VERSION);
@@ -73,7 +73,7 @@ public class Cherry {
 		System.out.print("[index_tiles '" + index + "']...");
 		List<String> list = Util.parseFromFile(index, new LinkedList<String>());
 		for(String string: list)
-			Tile.load_tile(string);
+			Tile.load_as_tile(string);
 		System.out.println("done");
 	}
 	
@@ -81,7 +81,7 @@ public class Cherry {
 		System.out.print("[index_walls '" + index + "']...");
 		List<String> list = Util.parseFromFile(index, new LinkedList<String>());
 		for(String string: list)
-			Tile.load_wall(string);
+			Tile.load_as_wall(string);
 		System.out.println("done");
 	}
 }

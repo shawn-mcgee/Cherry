@@ -1,7 +1,7 @@
 package cherry.game;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import blue.game.Sprite;
 import blue.geom.Vector;
@@ -9,8 +9,8 @@ import blue.geom.Vector2;
 
 public class Tile {
 	protected static final Map<String, Tile>
-		TILE_INDEX = new HashMap<>(),
-		WALL_INDEX = new HashMap<>();
+		TILE_INDEX = new TreeMap<>(),
+		WALL_INDEX = new TreeMap<>();
 	public static final int
 		FULL_W = 128,
 		FULL_H = 64,
@@ -27,14 +27,14 @@ public class Tile {
 		this.sprite = sprite;
 	}
 	
-	public static final Tile load_tile(String string) {
+	public static final Tile load_as_tile(String string) {
 		Tile tile = TILE_INDEX.get(string);
 		if(tile == null)
 			TILE_INDEX.put(string, tile = new Tile(string, Sprite.fromName(string, null)));
 		return tile;
 	}
 	
-	public static final Tile load_wall(String string) {
+	public static final Tile load_as_wall(String string) {
 		Tile wall = WALL_INDEX.get(string);
 		if(wall == null)
 			WALL_INDEX.put(string, wall = new Tile(string, Sprite.fromName(string, null)));

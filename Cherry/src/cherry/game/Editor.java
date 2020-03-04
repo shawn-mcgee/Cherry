@@ -1,16 +1,13 @@
 package cherry.game;
 
-import static cherry.game.Room.decrement;
-import static cherry.game.Room.increment;
-import static cherry.game.Room.mirror_x;
-import static cherry.game.Room.mirror_y;
-import static cherry.game.Room.offset;
-import static cherry.game.Room.rotate_l;
-import static cherry.game.Room.rotate_r;
+import static cherry.game.Tile.FULL_H;
+import static cherry.game.Tile.FULL_W;
 import static cherry.game.Tile.HALF_H;
+import static cherry.game.Tile.HALF_W;
 import static cherry.game.Tile.localToPixel;
 import static cherry.game.Tile.pixelToLocal;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 
@@ -20,12 +17,15 @@ import blue.core.Scene;
 import blue.game.Sprite;
 import blue.geom.Vector2;
 
-public class Editor extends Scene {
-	private static final long 
-		serialVersionUID = 1L;
-	private static final int
-		TILE_MODE = 0,
-		WALL_MODE = 1;
+public class Editor extends Scene {		
+	protected static final Color
+		debug_background = new Color(0f, 0f, 0f, .5f),
+		debug_foreground = new Color(1f, 1f, 1f, .5f);
+	protected final Vector2.Mutable
+		mouse = new Vector2.Mutable();
+	protected float
+		scale = .5f;
+	
 	protected final Camera 
 		camera = new Camera();
 	
@@ -33,35 +33,13 @@ public class Editor extends Scene {
 		room;
 	protected Sprite
 		sprite0,
-		sprite1,
-		wall_cursor,
-		tile_cursor;	
+		sprite1;
 	protected boolean
 		show_grid = true,
 		show_tiles = true,
 		show_walls = true;
-	
-	protected final Vector2.Mutable
-		mouse = new Vector2.Mutable();
-	protected float
-		scale = 1f;
-	
-	protected Tile[]
-		tiles,
-		walls;
-	protected int
-		tile_index,
-		wall_index;
-	
-	protected final Vector2.Mutable
-		brush_local = new Vector2.Mutable(),
-		brush_pixel = new Vector2.Mutable();
-	protected int
-		brush_mode;
-	protected String
-		brush_string;
-	protected Sprite
-		brush_sprite;
+	protected Brush
+		brush;
 	
 	protected java.awt.FileDialog
 		file_dialog;
@@ -71,26 +49,18 @@ public class Editor extends Scene {
 	}
 	
 	@Override
-	public void onAttach() {		
+	public void onAttach() {
+		camera.set_camera(Engine.getCanvasBounds().mid());
+		camera.tween.set(.001f, .001f);
 		room = new Room();
 		
 		sprite0 = Sprite.fromName("sprite0", null);
 		sprite1 = Sprite.fromName("sprite1", null);
-		tile_cursor = Sprite.fromName("tile_cursor", null);
-		wall_cursor = Sprite.fromName("wall_cursor", null);
 		
 		sprite0.setAlpha(.5f);
 		sprite1.setAlpha(.5f);
 		
-		camera.tween.set(.001f, .001f);
-		
-		brush_string = "debug";
-		brush_sprite = Sprite.fromName(brush_string, null);
-	}
-	
-	@Override
-	public void onResize() {
-		camera.set_camera(Engine.canvas().mid());
+		brush = new Brush();
 	}
 	
 	@Override
@@ -113,137 +83,145 @@ public class Editor extends Scene {
 							case 1: sprite = sprite1; break;
 						}
 						if(sprite != null) {
-							sprite.center(pixel.x(), pixel.y());
+							sprite .center(pixel );
 							context.render(sprite);
 						}
 					}
 					
 					Cell cell = room.get_cell(i, j);					
 					if(show_tiles && cell.tile != null) {
-						cell.tile.sprite.center(pixel.x(), pixel.y() + HALF_H);
+						cell.tile.sprite.center(pixel.x(), pixel.y() + HALF_H);						
 						context.render(cell.tile.sprite);
 					}					
 					if(show_walls && cell.wall != null) {
-						cell.wall.sprite.center(pixel.x(), pixel.y() - HALF_H);
+						cell.wall.sprite.center(pixel.x(), pixel.y() - HALF_H);						
 						context.render(cell.wall.sprite);
 					}
-				}
-			
-			Sprite cursor = null;
-			switch(brush_mode) {
-				case TILE_MODE: 
-					cursor = tile_cursor; 
-					cursor.center(brush_pixel.x(), brush_pixel.y()         );
-					break;					
-				case WALL_MODE: 
-					cursor = wall_cursor;
-					cursor.center(brush_pixel.x(), brush_pixel.y() - HALF_H);
-					break;
-			}
-			if(cursor != null)
-				context.render(cursor);
-			
-		context.pop();
+				}		
+
+		brush.render_cursor(context);
+		context.pop();		
+		brush.render_hotbar(context);
 		
 		context.font(new Font("Monospaced", Font.PLAIN, 16));
 		FontMetrics fm = context.g.getFontMetrics();
 		
+		Cell cell = room.get_cell(brush.i(), brush.j());
 		String[] info = {
-			"show_grid: " + show_grid,
-			"show_tiles: " + show_tiles,
-			"show_walls: " + show_walls
+			brush.mode_a + " [" + brush.i() + ", " + brush.j() + "]",
+			"Tile: " + (cell != null && cell.tile != null ? cell.tile.string : null),
+			"Wall: " + (cell != null && cell.wall != null ? cell.wall.string : null)
 		};
-	}
+		int
+			info_w = 0,
+			info_h = 0,
+			fm_h = fm.getAscent() + fm.getDescent() + fm.getLeading();
+		for(int i = 0; i < info.length; i ++) {
+			int w = fm.stringWidth(info[i]);
+			if(w > info_w)
+				info_w = w;
+			info_h += fm_h;
+		}
+		info_h += fm_h;
+		int
+			x = context.canvas_w - info_w,
+			y = 0;
+		
+		context.color(debug_background);
+		context.rect(
+				x, y,
+				info_w,
+				info_h,
+				true
+				);
+		context.color(debug_foreground);
+		for(int i = 0; i < info.length; i ++)
+			context.text(info[i], x, y += fm_h);
+	}	
 	
 	@Override
 	public void onUpdate(UpdateContext context) {
-		context.update(camera);
-		int
-			i = (int)brush_local.x(),
-			j = (int)brush_local.y();
-		
-		if(Input.isBtnDn(Input.BTN_1)) {
-			switch(brush_mode) {
-				case TILE_MODE: room.set_tile(i, j, brush_string); break;
-				case WALL_MODE: room.set_wall(i, j, brush_string); break;
-			}
-		}
-		if(Input.isBtnDn(Input.BTN_3)) {
-			switch(brush_mode) {
-				case TILE_MODE: room.set_tile(i, j, null); break;
-				case WALL_MODE: room.set_wall(i, j, null); break;
-			}
-		}
-	}
-	
-	public void save_room() {
-		file_dialog.setMode(java.awt.FileDialog.SAVE);
-		file_dialog.setVisible(true);
-		
-		String path = file_dialog.getFile();
-		if(path != null)
-			Room.save(room, path);
-	}
-	
-	public void open_room() {
-		file_dialog.setMode(java.awt.FileDialog.LOAD);
-		file_dialog.setVisible(true);
-		
-		String path = file_dialog.getFile();
-		if(path != null)
-			Room.open(room, path);
-	}
-	
-	public void new_room() {
-		Room.resize(
-				room, 
-				Room.DEFAULT_ROOM_W, 
-				Room.DEFAULT_ROOM_H
-				);
-		room.clear();
-	}
-	
-	
+		camera.tween(context.fixed_dt);
+		if(Input.isBtnDn(Input.BTN_1))
+			brush._place(room);
+		if(Input.isBtnDn(Input.BTN_3))
+			brush._break(room);
+		brush.hotbar.tween(context.fixed_dt);
+	}	
 	
 	@Override
 	public void onKeyDn(int key) {
-		if(Input.isKeyDn(Input.KEY_L_CTRL)) {
+		if(
+				Input.isKeyDn(Input.KEY_L_CTRL) || 
+				Input.isKeyDn(Input.KEY_R_CTRL) ){
 			switch(key) {
-				case Input.KEY_S: save_room(); break;
-				case Input.KEY_O: open_room(); break;
-				case Input.KEY_N: new_room(); break;				
+				case Input.KEY_N: onNew(); break;
+				case Input.KEY_O: onLoad(); break;
+				case Input.KEY_S: onSave(); break;			
 			}
-		} else if(Input.isKeyDn(Input.KEY_L_SHIFT)) {
+		} else if(
+				Input.isKeyDn(Input.KEY_L_ALT) || 
+				Input.isKeyDn(Input.KEY_R_ALT) ){
 			switch(key) {
-				case Input.KEY_EQUALS: increment(room); break;
-				case Input.KEY_MINUS : decrement(room); break;
+				case Input.KEY_BQUOTE: show_grid = !show_grid; break;
+				case Input.KEY_1: show_tiles = !show_tiles; break;
+				case Input.KEY_2: show_walls = !show_walls; break;
+			}			
+		} else if(		
+				Input.isKeyDn(Input.KEY_L_SHIFT) || 
+				Input.isKeyDn(Input.KEY_R_SHIFT) ){
+			switch(key) {
+				case Input.KEY_EQUALS: room.increment(); break;
+				case Input.KEY_MINUS : room.decrement(); break;
 				
-				case Input.KEY_UP_ARROW: offset(room, 0, -1); break;
-				case Input.KEY_DN_ARROW: offset(room, 0,  1); break;
-				case Input.KEY_L_ARROW: offset(room, -1, 0); break;
-				case Input.KEY_R_ARROW: offset(room,  1, 0); break;
+				case Input.KEY_W:
+				case Input.KEY_UP_ARROW: room.translate(-1, -1); break;
+				
+				case Input.KEY_S:
+				case Input.KEY_DN_ARROW: room.translate( 1,  1); break;
+				
+				case Input.KEY_A:
+				case Input.KEY_L_ARROW : room.translate(-1,  1); break;
+				
+				case Input.KEY_D:
+				case Input.KEY_R_ARROW : room.translate( 1, -1); break;
 
-				case Input.KEY_Q: rotate_l(room); break;
-				case Input.KEY_E: rotate_r(room); break;
+				case Input.KEY_Q: room.rotate_l(); break;
+				case Input.KEY_E: room.rotate_r(); break;
 
-				case Input.KEY_X: mirror_x(room); break;
-				case Input.KEY_Y: mirror_y(room); break;
+				case Input.KEY_X: room.mirror_x(); break;
+				case Input.KEY_Z: room.mirror_y(); break;
 			}
 		} else
 			switch(key) {
-				case Input.KEY_G: show_grid  = !show_grid;  break;
-				case Input.KEY_T: show_tiles = !show_tiles; break;
-				case Input.KEY_W: show_walls = !show_walls; break;
-				case Input.KEY_TAB:
-					brush_mode ^= 1;
+				case Input.KEY_EQUALS: zoom_increment(); break;
+				case Input.KEY_MINUS : zoom_decrement(); break;
+				
+				case Input.KEY_W: 
+				case Input.KEY_UP_ARROW: camera.mov_target(0,  FULL_H * camera.camera_s.y()); break;
+				
+				case Input.KEY_S: 
+				case Input.KEY_DN_ARROW: camera.mov_target(0, -FULL_H * camera.camera_s.y()); break;
+				
+				case Input.KEY_A: 
+				case Input.KEY_L_ARROW : camera.mov_target( FULL_W * camera.camera_s.x(), 0); break;
+				
+				case Input.KEY_D: 
+				case Input.KEY_R_ARROW : camera.mov_target(-FULL_W * camera.camera_s.x(), 0); break;
+				
+				case Input.KEY_Q: brush.last_brush(); break;
+				case Input.KEY_E: brush.next_brush(); break;
+				
+				case Input.KEY_1: brush.set_mode(Brush.Mode.TILE); break;
+				case Input.KEY_2: brush.set_mode(Brush.Mode.WALL); break;
+				case Input.KEY_TAB: brush.toggle_mode(); break;
 			}		
 	}	
 	
 	@Override
 	public void onMouseMoved(Vector2 mouse) {
 		Vector2 pixel = camera.mouseToPixel(mouse);
-		set_brush_pixel(pixel.x(), pixel.y() + HALF_H);
-		
+		brush.set_pixel(pixel.x(), pixel.y() + HALF_H);		
 		
 		if(Input.isBtnDn(Input.BTN_2)) {
 			float
@@ -255,44 +233,250 @@ public class Editor extends Scene {
 		this.mouse.set(mouse);
 	}
 	
+	public void zoom_increment() {
+		if(scale <  4f)
+			scale *= 1.25f;
+	}
+	
+	public void zoom_decrement() {
+		if(scale > .5f)
+			scale /= 1.25f;
+	}
+	
 	@Override
 	public void onWheelMoved(float wheel) {
 		if(wheel != 0) {
 			Vector2 mouse = Input.getMouse();			
-			if(wheel < 0 && scale <  4f)
-				scale *= 1.25f;
-			if(wheel > 0 && scale > .5f)
-				scale /= 1.25f;
+			if(wheel < 0) zoom_increment();
+			if(wheel > 0) zoom_decrement();
 			
 			camera.sca_target(mouse, scale, scale);
 		}
+	}	
+	
+	public void onNew() {
+		room.resize(
+				Room.DEFAULT_ROOM_W, 
+				Room.DEFAULT_ROOM_H
+				);
+		room.clear();
 	}
 	
-	public void set_brush_local(float i, float j) {
-		i = (int)i;
-		j = (int)j;
-		Vector2 pixel = localToPixel(i, j);
+	public void onLoad() {
+		file_dialog.setMode(java.awt.FileDialog.LOAD);
+		file_dialog.setVisible(true);
+		file_dialog.dispose();
 		
-		this.brush_local.set(i , j);
-		this.brush_pixel.set(pixel);
+		String path = file_dialog.getFile();
+		if(path != null)
+			room.load(path);
 	}
 	
-	public void set_brush_local(Vector2 local) {
-		set_brush_local(local.x(), local.y());
-	}
-	
-	public void set_brush_pixel(float x, float y) {
-		Vector2 local = pixelToLocal(x, y);
-		int
-			i = (int)local.x(),
-			j = (int)local.y();
-		Vector2 pixel = localToPixel(i, j);
+	public void onSave() {
+		file_dialog.setMode(java.awt.FileDialog.SAVE);
+		file_dialog.setVisible(true);
+		file_dialog.dispose();
 		
-		this.brush_local.set(i , j);
-		this.brush_pixel.set(pixel);
+		String path = file_dialog.getFile();
+		if(path != null)
+			room.save(path);
 	}
 	
-	public void set_brush_pixel(Vector2 pixel) {
-		set_brush_pixel(pixel.x(), pixel.y());
+	public static class Brush {
+		public static enum Mode {
+			TILE,
+			WALL;
+		}
+		
+		protected final Vector2.Mutable
+			local = new Vector2.Mutable(),
+			pixel = new Vector2.Mutable();
+		protected Tile[]
+			tile_brushes,
+			wall_brushes;
+		protected int
+			tile_index,
+			wall_index;
+		protected Tile
+			tile_brush,
+			wall_brush;
+		protected Mode
+			mode_a,
+			mode_b;
+		
+		protected Sprite
+			tile_cursor,
+			wall_cursor;
+		protected Camera
+			hotbar;
+		
+		public Brush() {		
+			tile_cursor = Sprite.fromName("tile_cursor", null);
+			wall_cursor = Sprite.fromName("wall_cursor", null);
+			load_tile_brushes();
+			load_wall_brushes();
+			mode_a = Mode.TILE;
+			mode_b = Mode.WALL;
+			
+			hotbar = new Camera();
+			hotbar.tween.set(.001f, .001f);
+		}
+		
+		public void set_mode(Mode mode_c) {
+			if(mode_a != mode_c) {
+				mode_b = mode_a;
+				mode_a = mode_c;
+			}
+			switch(mode_a) {
+				case TILE: hotbar.set_target(-tile_index * FULL_W, 0); break;
+				case WALL: hotbar.set_target(-wall_index * FULL_W, 0); break;
+			}
+		}
+		
+		public void toggle_mode() {
+			set_mode(mode_b);
+		}
+		
+		public void next_brush() {
+			switch(mode_a) {
+				case TILE:
+					tile_index = (tile_index + 1 + tile_brushes.length) % tile_brushes.length;
+					tile_brush = tile_brushes[tile_index];
+					break;
+				case WALL:
+					wall_index = (wall_index + 1 + wall_brushes.length) % wall_brushes.length;
+					wall_brush = wall_brushes[wall_index];
+					break;
+			}
+			switch(mode_a) {
+				case TILE: hotbar.set_target(-tile_index * FULL_W, 0); break;
+				case WALL: hotbar.set_target(-wall_index * FULL_W, 0); break;
+			}
+		}
+		
+		public void last_brush() {
+			switch(mode_a) {
+				case TILE:
+					tile_index = (tile_index - 1 + tile_brushes.length) % tile_brushes.length;
+					tile_brush = tile_brushes[tile_index];
+					break;
+				case WALL:
+					wall_index = (wall_index - 1 + wall_brushes.length) % wall_brushes.length;
+					wall_brush = wall_brushes[wall_index];
+					break;
+			}
+			switch(mode_a) {
+				case TILE: hotbar.set_target(-tile_index * FULL_W, 0); break;
+				case WALL: hotbar.set_target(-wall_index * FULL_W, 0); break;
+			}
+		}
+		
+		public void _place(Room room) {
+			switch(mode_a) {
+				case TILE: room.set_tile(i(), j(), tile_brush); break;
+				case WALL: room.set_wall(i(), j(), wall_brush); break;
+			}
+		}
+		
+		public void _break(Room room) {
+			switch(mode_a) {
+				case TILE: room.set_tile(i(), j(), null); break;
+				case WALL: room.set_wall(i(), j(), null); break;
+			}
+		}
+		
+		public void render_cursor(RenderContext context) {					
+			switch(mode_a) {
+				case TILE:
+					tile_cursor.center(x(), y()         );					
+					context.render(tile_cursor);
+					break;					
+				case WALL:
+					wall_cursor.center(x(), y() - HALF_H);
+					context.render(wall_cursor);
+					break;
+			}
+		}
+		
+		public void render_hotbar(RenderContext context) {
+			context.color(debug_background);
+			context.rect(
+					0, context.canvas_h - FULL_H * 2,
+					   context.canvas_w , FULL_H * 2,
+					true);
+			context.color(debug_foreground);
+			context.rect(
+					context.canvas_w / 2 - HALF_W, 
+					context.canvas_h - 2 * FULL_H,
+					FULL_W, 2 * FULL_H,
+					true);
+			
+			context.push();						
+				context.mov(
+						context.canvas_w / 2          + (int)hotbar.camera_t.x(),
+						context.canvas_h - 2 * FULL_H + (int)hotbar.camera_t.y()
+						);
+			
+			switch(mode_a) {
+				case TILE:
+					for(int i = 0; i < tile_brushes.length; i ++) {
+						tile_brushes[i].sprite.center(i * FULL_W, FULL_H);
+						context.render(tile_brushes[i].sprite);
+					}
+					break;					
+				case WALL:
+					for(int i = 0; i < wall_brushes.length; i ++) {
+						wall_brushes[i].sprite.center(i * FULL_W, FULL_H);
+						context.render(wall_brushes[i].sprite);
+					} 
+					break;
+			}
+			context.pop();
+		}
+		
+		public float x() { return pixel.x(); }
+		public float y() { return pixel.y(); }
+		public int i() { return (int)local.x(); }
+		public int j() { return (int)local.y(); }
+		
+		public void set_local(float i, float j) {
+			i = (int)i;
+			j = (int)j;
+			Vector2 pixel = localToPixel(i, j);
+			
+			this.local.set(i , j);
+			this.pixel.set(pixel);
+		}
+		
+		public void set_local(Vector2 local) {
+			set_local(local.x(), local.y());
+		}
+		
+		public void set_pixel(float x, float y) {
+			Vector2 local = pixelToLocal(x, y);
+			int
+				i = (int)local.x(),
+				j = (int)local.y();
+			Vector2 pixel = localToPixel(i, j);
+			
+			this.local.set(i , j);
+			this.pixel.set(pixel);
+		}
+		
+		public void set_pixel(Vector2 pixel) {
+			set_pixel(pixel.x(), pixel.y());
+		}		
+		
+		public void load_tile_brushes() {
+			tile_brushes = new Tile[Tile.TILE_INDEX.size()];
+			Tile.TILE_INDEX.values().toArray(tile_brushes);
+			tile_brush = tile_brushes[tile_index = 0];
+		}
+		
+		public void load_wall_brushes() {
+			wall_brushes = new Tile[Tile.WALL_INDEX.size()];
+			Tile.WALL_INDEX.values().toArray(wall_brushes);
+			wall_brush = wall_brushes[wall_index = 0];
+		}
 	}
 }
