@@ -9,7 +9,7 @@ import blue.game.Sprite;
 import blue.geom.Vector;
 import blue.util.Util;
 import blue.util.Version;
-import cherry.game.Editor;
+import cherry.game.Game;
 import cherry.game.Tile;
 
 public class Cherry {
@@ -32,7 +32,8 @@ public class Cherry {
 		
 		Engine.init();
 		
-		Engine.setScene(new Editor());
+		//Engine.setScene(new Editor());
+		Engine.setScene(new Game());
 	}
 	
 	public static final void load_sprites(String index) {

@@ -5,4 +5,5 @@ name=tile_cursor,path=tile_cursor.png,w=132,h=68
 name=wall_cursor,path=wall_cursor.png,w=132,h=132
 
 name=marble_slab_1,path=marble_slab_1.png,w=128,h=128
-name=marble_slab_2,path=marble_slab_2.png,w=128,h=128
+name=marble_edge_1,path=marble_edge_1.png,w=128,h=128
+name=boring_pillar,path=boring_pillar.png,w=128,h=128

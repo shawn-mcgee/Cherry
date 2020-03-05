@@ -3,20 +3,22 @@ package cherry.game;
 import java.util.LinkedList;
 import java.util.List;
 
-import blue.core.Renderable;
 import blue.core.Updateable;
 import blue.geom.Vector2;
 import blue.util.Util;
 
-public class Room implements Renderable, Updateable {
+public class Room implements Updateable {
 	public static final int
 		DEFAULT_ROOM_W = 16,
 		DEFAULT_ROOM_H = 16;
 	protected int
 		w,
-		h;	
+		h;
 	protected Cell[][]
 		grid;
+	
+	protected List<Entity>
+		entities;
 	
 	public Room() {
 		this(
@@ -32,10 +34,44 @@ public class Room implements Renderable, Updateable {
 		for(int i = 0; i < this.w; i ++)
 			for(int j = 0; j < this.h; j ++)
 				grid[i][j] = new Cell(i, j, this);
+		this.entities = new LinkedList<>();
+	}
+	
+	public void add_entity(Entity entity) {
+		Cell cell = get_cell(entity.i(), entity.j());
+		if(cell != null) {
+			entities.add   (entity);
+			cell.add_entity(entity);
+			entity.room = this;
+		}
+	}
+	
+	public void del_entity(Entity entity) {
+		Cell cell = get_cell(entity.i(), entity.j());
+		if(cell != null) {
+			entities.remove(entity);
+			cell.del_entity(entity);
+			entity.room = null;
+		}
 	}
 	
 	public int w() { return w; }
 	public int h() { return h; }
+	
+	@Override
+	public void onUpdate(UpdateContext context) {
+		for(int j = 0; j < h; j ++)
+			for(int i = 0; i < w; i ++)
+				context.update(grid[i][j]);
+		for(int j = 0; j < h; j ++)
+			for(int i = 0; i < w; i ++)
+				if(grid[i][j].m_flag)
+					grid[i][j].handle_m_flag();
+		for(int j = 0; j < h; j ++)
+			for(int i = 0; i < w; i ++)
+				if(grid[i][j].s_flag)
+					grid[i][j].handle_s_flag();
+	}
 	
 	public void set_tile(int i, int j, Tile tile) {
 		Cell cell = get_cell(i, j);
@@ -94,18 +130,6 @@ public class Room implements Renderable, Updateable {
 		for(int i = 0; i < w; i ++)
 			for(int j = 0; j < h; j ++)
 				grid[i][j].clear();
-	}
-	
-	@Override
-	public void onRender(RenderContext context) {
-		for(int j = 0; j < h; j ++)
-			for(int i = 0; i < w; i ++)
-				grid[i][j].onRender(context);
-	}
-	
-	@Override
-	public void onUpdate(UpdateContext context) {
-		
 	}
 	
 	public void resize(int w, int h) {

@@ -7,6 +7,7 @@ import blue.core.Input;
 import blue.core.Scene;
 import blue.geom.Vector;
 import blue.geom.Vector2;
+import blue.geom.Vector4;
 import cherry.game.Camera;
 
 public class Game extends Scene {
@@ -22,6 +23,12 @@ public class Game extends Scene {
 	public Room
 		room;
 	
+	public static void main(String[] args) {
+		Engine.getConfiguration().set(Engine.CANVAS_FOREGROUND, new Vector4(0, 0, 0, 255));
+		Engine.init();
+		Engine.setScene(new Game());
+	}
+	
 	public Game() {
 		ROOM_1.link_north(ROOM_3);
 		ROOM_3.link_north(ROOM_4);
@@ -31,6 +38,8 @@ public class Game extends Scene {
 		ROOM_2.link_east(ROOM_4);
 		
 		room = ROOM_1;
+		
+		camera.tween.set(.001f, .001f);
 	}
 	
 	@Override

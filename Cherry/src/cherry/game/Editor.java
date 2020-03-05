@@ -72,30 +72,51 @@ public class Editor extends Scene {
 					);
 			context.sca(camera.camera_s);
 			
-			for(int j = 0; j < room.h(); j ++)
-				for(int i = 0; i < room.w(); i ++) {
-					Vector2 pixel = localToPixel(i, j);
-					
-					if(show_grid) {
-						Sprite sprite = null;
-						switch((i + j) & 1) {
-							case 0: sprite = sprite0; break;
-							case 1: sprite = sprite1; break;
+			Vector2				
+				v0 = pixelToLocal(camera.mouseToPixel(0, 0)), //top l view in local coords				
+				v1 = camera.mouseToPixel(0, 0),               //top l view in pixel coords				
+				v2 = camera.mouseToPixel(                     //bot r view in pixel coords
+						context.canvas_w,
+						context.canvas_h
+						);
+			int
+				x0 = (int)v0.x() - 6,
+				y0 = (int)v0.y()    ,
+				dx = (int)(v2.x() - v1.x()) / FULL_W + 6, //view width  in tiles
+				dy = (int)(v2.y() - v1.y()) / FULL_H + 6; //view height in tiles
+			
+			for(float y = 0; y < dy; y += .5f)
+				for(float x = y % 1f; x < dx; x += 1f) {
+					int
+						i = x0 + (int)(y + x),
+						j = y0 + (int)(y - x);
+					if(
+								i >= 0 && i < room.w() &&
+								j >= 0 && j < room.h()
+								) {
+						Vector2 pixel = localToPixel(i, j);
+						
+						if(show_grid) {
+							Sprite sprite = null;
+							switch((i + j) & 1) {
+								case 0: sprite = sprite0; break;
+								case 1: sprite = sprite1; break;
+							}
+							if(sprite != null) {
+								sprite .center(pixel.x(), pixel.y() + HALF_H);
+								context.render(sprite);
+							}
 						}
-						if(sprite != null) {
-							sprite .center(pixel );
-							context.render(sprite);
+							
+						Cell cell = room.get_cell(i, j);					
+						if(show_tiles && cell.tile != null) {
+							cell.tile.sprite.center(pixel.x(), pixel.y() + FULL_H);						
+							context.render(cell.tile.sprite);
+						}					
+						if(show_walls && cell.wall != null) {
+							cell.wall.sprite.center(pixel.x(), pixel.y());						
+							context.render(cell.wall.sprite);
 						}
-					}
-					
-					Cell cell = room.get_cell(i, j);					
-					if(show_tiles && cell.tile != null) {
-						cell.tile.sprite.center(pixel.x(), pixel.y() + HALF_H);						
-						context.render(cell.tile.sprite);
-					}					
-					if(show_walls && cell.wall != null) {
-						cell.wall.sprite.center(pixel.x(), pixel.y() - HALF_H);						
-						context.render(cell.wall.sprite);
 					}
 				}		
 
@@ -221,7 +242,7 @@ public class Editor extends Scene {
 	@Override
 	public void onMouseMoved(Vector2 mouse) {
 		Vector2 pixel = camera.mouseToPixel(mouse);
-		brush.set_pixel(pixel.x(), pixel.y() + HALF_H);		
+		brush.set_pixel(pixel.x(), pixel.y());		
 		
 		if(Input.isBtnDn(Input.BTN_2)) {
 			float
@@ -388,11 +409,11 @@ public class Editor extends Scene {
 		public void render_cursor(RenderContext context) {					
 			switch(mode_a) {
 				case TILE:
-					tile_cursor.center(x(), y()         );					
+					tile_cursor.center(x(), y() + HALF_H);					
 					context.render(tile_cursor);
 					break;					
 				case WALL:
-					wall_cursor.center(x(), y() - HALF_H);
+					wall_cursor.center(x(), y()         );
 					context.render(wall_cursor);
 					break;
 			}
@@ -470,13 +491,15 @@ public class Editor extends Scene {
 		public void load_tile_brushes() {
 			tile_brushes = new Tile[Tile.TILE_INDEX.size()];
 			Tile.TILE_INDEX.values().toArray(tile_brushes);
-			tile_brush = tile_brushes[tile_index = 0];
+			if(tile_brushes.length > 0)
+				tile_brush = tile_brushes[tile_index = 0];
 		}
 		
 		public void load_wall_brushes() {
 			wall_brushes = new Tile[Tile.WALL_INDEX.size()];
 			Tile.WALL_INDEX.values().toArray(wall_brushes);
-			wall_brush = wall_brushes[wall_index = 0];
+			if(wall_brushes.length > 0)
+				wall_brush = wall_brushes[wall_index = 0];
 		}
 	}
 }
