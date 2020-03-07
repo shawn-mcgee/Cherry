@@ -50,7 +50,7 @@ public class Editor extends Scene {
 	
 	@Override
 	public void onAttach() {
-		camera.set_camera(Engine.getCanvasBounds().mid());
+		camera.set_camera(Engine.canvas().mid());
 		camera.tween.set(.001f, .001f);
 		room = new Room();
 		

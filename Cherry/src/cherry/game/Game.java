@@ -19,7 +19,7 @@ public class Game extends Scene {
 	public void onAttach() {
 		room = new Room();
 		room.load("room.txt");
-		camera.set_camera(Engine.getCanvasBounds().mid());
+		camera.set_camera(Engine.canvas().mid());
 		
 		
 		room.add_entity(new Player());

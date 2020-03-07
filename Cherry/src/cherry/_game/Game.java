@@ -44,7 +44,7 @@ public class Game extends Scene {
 	
 	@Override
 	public void onResize() {
-		camera.set_camera(Engine.getCanvasBounds().mid(), new Vector2(1f, 1f));
+		camera.set_camera(Engine.canvas().mid(), new Vector2(1f, 1f));
 	}
 	
 	@Override
@@ -89,7 +89,7 @@ public class Game extends Scene {
 					dy = (room.north.door.y() - room.north.room.south.door.y()) * camera.camera_s.y();				
 				room = room.north.room;
 				camera.mov_camera(dx, dy);
-				camera.set_target(Vector.sub(Engine.getCanvasBounds().mid(), room.bounds.mid()));
+				camera.set_target(Vector.sub(Engine.canvas().mid(), room.bounds.mid()));
 				return;
 			}
 			if(mouse.y() > room.bounds.y2() && room.south.room != null) {
@@ -98,7 +98,7 @@ public class Game extends Scene {
 					dy = (room.south.door.y() - room.south.room.north.door.y()) * camera.camera_s.y();
 				room = room.south.room;
 				camera.mov_camera(dx, dy);
-				camera.set_target(Vector.sub(Engine.getCanvasBounds().mid(), room.bounds.mid()));
+				camera.set_target(Vector.sub(Engine.canvas().mid(), room.bounds.mid()));
 				return;
 			}
 			if(mouse.x() < room.bounds.x1() && room.west.room != null) {
@@ -107,7 +107,7 @@ public class Game extends Scene {
 					dy = (room.west.door.y() - room.west.room.east.door.y()) * camera.camera_s.y();
 				room = room.west.room;
 				camera.mov_camera(dx, dy);
-				camera.set_target(Vector.sub(Engine.getCanvasBounds().mid(), room.bounds.mid()));
+				camera.set_target(Vector.sub(Engine.canvas().mid(), room.bounds.mid()));
 				return;
 			}
 			if(mouse.x() > room.bounds.x2() && room.east.room != null) {
@@ -116,7 +116,7 @@ public class Game extends Scene {
 					dy = (room.east.door.y() - room.east.room.west.door.y()) * camera.camera_s.y();
 				room = room.east.room;
 				camera.mov_camera(dx, dy);
-				camera.set_target(Vector.sub(Engine.getCanvasBounds().mid(), room.bounds.mid()));
+				camera.set_target(Vector.sub(Engine.canvas().mid(), room.bounds.mid()));
 			}
 		}
 	}

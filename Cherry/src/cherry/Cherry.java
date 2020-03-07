@@ -19,6 +19,9 @@ public class Cherry {
 	public static void main(String[] args) {		
 		System.out.println(VERSION);
 		
+		System.out.println(System.getProperty("Dsun.java2d.opengl"));
+		System.setProperty("Dsun.java2d.translaccel", "true");
+		
 		Engine.getConfiguration().load("engine.cfg");
 		
 		Engine.getConfiguration().set(Engine.CANVAS_FOREGROUND, Vector.fromColor4i(Color.BLACK));
