@@ -95,44 +95,46 @@ public class Entity implements Renderable, Updateable {
 			i = (int)local.x(),
 			j = (int)local.y();
 		
+		Segment
+			segment_a = null,
+			segment_b = null;
+		
 		if(dx < 0) {
 			if(room.get_wall(i - 1, j) != null) {
 				segment_a = new Segment(i    , j    , i    , j + 1);
-				System.out.println("case 1");
 			} else if(dy < 0 && room.get_wall(i - 1, j - 1) != null) {
 				segment_a = new Segment(i - 1, j    , i    , j    );
-				System.out.println("case 2");
 			} else if(dy > 0 && room.get_wall(i - 1, j + 1) != null) {
 				segment_a = new Segment(i - 1, j + 1, i    , j + 1);
-				System.out.println("case 3");
 			}
 		} else if(dx > 0) {
 			if(room.get_wall(i + 1, j) != null) {
 				segment_a = new Segment(i + 1, j    , i + 1, j + 1);
-				System.out.println("case 4");
 			} else if(dy < 0 && room.get_wall(i + 1, j - 1) != null) {
 				segment_a = new Segment(i + 1, j    , i + 2, j    );
-				System.out.println("case 5");
 			} else if(dy > 0 && room.get_wall(i + 1, j + 1) != null) {
 				segment_a = new Segment(i + 1, j + 1, i + 2, j + 1);
-				System.out.println("case 6");
 			}
 		}
 		
 		if(dy < 0) {
-			if(room.get_wall(i, j - 1) != null)
+			if(room.get_wall(i, j - 1) != null) {
 				segment_b = new Segment(i    , j    , i + 1, j    );
-			else if(dx < 0 && room.get_wall(i - 1, j - 1) != null)
+			} else if(dx < 0 && room.get_wall(i - 1, j - 1) != null) {
 				segment_b = new Segment(i    , j - 1, i    , j    );
-			else if(dx > 0 && room.get_wall(i + 1, j + 1) != null)
-				segment_b = new Segment(i + 1, j - 1,  + 1, j     );			
+			} else if(dx > 0 && room.get_wall(i + 1, j + 1) != null) {
+				segment_b = new Segment(i + 1, j - 1,i + 1, j     );
+			}
 		} else if(dy > 0) {
-			if(room.get_wall(i, j + 1) != null)
+			if(room.get_wall(i, j + 1) != null) {
 				segment_b = new Segment(i    , j + 1, i + 1, j + 1);
-			else if(dx < 0 && room.get_wall(i - 1, j + 1) != null)
+			}
+			else if(dx < 0 && room.get_wall(i - 1, j + 1) != null) {
 				segment_b = new Segment(i    , j + 1, i    , j + 2);
-			else if(dx > 0 && room.get_wall(i + 1, j + 1) != null)
+			}
+			else if(dx > 0 && room.get_wall(i + 1, j + 1) != null) {
 				segment_b = new Segment(i + 1, j + 1, i + 1, j + 2);
+			}
 		}
 		
 		Vector2
@@ -140,41 +142,64 @@ public class Entity implements Renderable, Updateable {
 		float
 			delta = Float.POSITIVE_INFINITY;
 		
+		
+		Segment
+			segment_c = new Segment(local.x(), local.y(), local.x() + dx + Util.sign(dx) * size, local.y()),
+			segment_d = new Segment(local.x(), local.y(), local.x(), local.y() + dy + Util.sign(dy) * size);
+		
 		if(segment_a != null) {
-			Vector2 
-				c = Vector.add(local, dx, dy);	
-		    float 
-		    	t = Vector.s_pro(Vector.sub(c, segment_a.v1), segment_a.dv);
-		    Vector2 
-		    	p = Vector.add(segment_a.v1, Vector.mul(segment_a.dv, Util.clamp(t, 0f, 1f))); 
-		    float 
-		    	d = Vector.dot(Vector.sub(c, p));
-		    if(d < delta) {
-		    	point = p;
-		    	delta = d;
-		    	
-		    	this.point = p;
-		    }
+			Vector2 p;
+			p = point(segment_a, segment_c);
+			if(p != null) {
+				float d = Vector.dot(Vector.sub(local, p));
+				if(d < delta) {
+					delta = d;
+					point = p;
+					
+					this.point = p;
+				}
+			}
+			p = point(segment_a, segment_d);
+			if(p != null) {
+				float d = Vector.dot(Vector.sub(local, p));
+				if(d < delta) {
+					delta = d;
+					point = p;
+					
+					this.point = p;
+				}
+			}
+			
+			this.segment_a = segment_a;
 		}
 		
-		if(segment_b != null) {
-			Vector2
-				c = Vector.add(local, dx, dy);
-		    float 
-		    	t = Vector.s_pro(Vector.sub(c, segment_b.v1), segment_b.dv);
-		    Vector2
-		    	p = Vector.add(segment_b.v1, Vector.mul(segment_b.dv, Util.clamp(t, 0f, 1f)));
-		    float 
-		    	d = Vector.dot(Vector.sub(c, p));
-		    if(d < delta) {
-		    	point = p;
-		    	delta = d;
-		    	
-		    	this.point = p;
-		    }
+		if(segment_b != null){
+			Vector2 p;
+			p = point(segment_b, segment_c);
+			if(p != null) {
+				float d = Vector.dot(Vector.sub(local, p));
+				if(d < delta) {
+					delta = d;
+					point = p;
+					
+					this.point = p;
+				}
+			}
+			p = point(segment_b, segment_d);
+			if(p != null) {
+				float d = Vector.dot(Vector.sub(local, p));
+				if(d < delta) {
+					delta = d;
+					point = p;
+					
+					this.point = p;
+				}
+			}
+			
+			this.segment_b = segment_b;
 		}
 		
-		if(point != null && delta < size * size) {
+		if(point != null) {
 			float a0 = (dx * dx) + (dy * dy);			
 			if(a0 != 0) {
 				float 
@@ -190,7 +215,18 @@ public class Entity implements Renderable, Updateable {
 					q1 = (float)Math.sqrt(q0 * q0 - c1),
 					t0 = -q0 - q1,
 					t1 = -q0 + q1;
-				System.out.println(t0 + ", " + t1);
+				if(Float.isNaN(t0)) {
+					System.err.println("a0: " + a0);
+					System.err.println("b0: " + b0);
+					System.err.println("c0: " + c0);
+					System.err.println("b1: " + b1);
+					System.err.println("c1: " + c1);
+					System.err.println("q0: " + q0);
+					System.err.println("q1: " + q1);
+					System.err.println("t: " + t0);
+					
+					t0 = 0;
+				}
 				dx *= t0;
 				dy *= t0;
 			}			
@@ -206,32 +242,60 @@ public class Entity implements Renderable, Updateable {
 			v2,
 			dv;
 		
-		public Segment(int x1, int y1, int x2, int y2) {
+		public Segment(float x1, float y1, float x2, float y2) {
 			this.v1 = new Vector2(x1, y1);
 			this.v2 = new Vector2(x2, y2);
 			this.dv = new Vector2(x2 - x1, y2 - y1);
-		}
+		}		
 	}
 	
+	public static Vector2 point(Segment a, Segment b) {
+		float
+			x1 = a.v1.x(),
+			x2 = a.v2.x(),
+			x3 = b.v1.x(),
+			x4 = b.v2.x(),
+			y1 = a.v1.y(),
+			y2 = a.v2.y(),
+			y3 = b.v1.y(),
+			y4 = b.v2.y(),
+			dx = a.dv.x(),
+			dy = a.dv.y();
+		int
+			w1 = winding(x1, y1, x2, y2, x3, y3),
+			w2 = winding(x1, y1, x2, y2, x4, y4);
+		
+		if(w1 != w2) {
+			float
+				t = 
+				((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) /
+				((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1)) ;
+			if(t <= 0f)
+				return a.v1;
+			if(t >= 1f)
+				return a.v2;
+			return new Vector2(x1 + t * dx, y1 + t * dy);
+		}
+		
+		return null;
+	}
 	
-		
-		
-		
-		
-		
-		
-		
-		
-//		int
-//			i = (int)(local.x() + dx + (dx != 0f ? dx > 0f ? size : - size: 0f)),
-//			j = (int)(local.y() + dy + (dy != 0f ? dy > 0f ? size : - size: 0f));
-//		Tile
-//			wall_dx = room.get_wall(i, j()),
-//			wall_dy = room.get_wall(i(), j);
-//		
-//		if(wall_dx != null && wall_dy == null)
-//			dx = i - local.x() + (dx <= 0 ? size + 1 : - size);
-//		if(wall_dy != null && wall_dx == null)
-//			dy = j - local.y() + (dy <= 0 ? size + 1 : - size);
-		
+	public static final int winding(
+    		Vector2 v1,
+    		Vector2 v2,
+    		Vector2 v3
+    		) {
+    	return winding(v1.x(), v1.y(), v2.x(), v2.y(), v3.x(), v3.y());
+    }
+	
+	public static final int winding(
+    		float x1, float y1,
+    		float x2, float y2,
+    		float x3, float y3
+    		) {
+    	float w = 
+    			(y2 - y1) * (x3 - x2) - 
+    			(x2 - x1) * (y3 - y2);    
+    	return (w != 0) ? (w > 0)? -1 : 1 : 0;
+    }
 }

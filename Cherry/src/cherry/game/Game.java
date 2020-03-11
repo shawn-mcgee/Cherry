@@ -14,6 +14,8 @@ public class Game extends Scene {
 		camera = new Camera();
 	protected Room
 		room;
+	protected Player
+		player;
 	
 	@Override
 	public void onAttach() {
@@ -22,7 +24,8 @@ public class Game extends Scene {
 		camera.set_camera(Engine.canvas().mid());
 		
 		
-		room.add_entity(new Player());
+		room.add_entity(player = new Player());
+		camera.tween.set(.5f, .5f);
 	}
 
 	@Override
@@ -90,5 +93,8 @@ public class Game extends Scene {
 	@Override
 	public void onUpdate(UpdateContext context) {
 		context.update(room);
+
+		camera.set_target(context.canvas_w / 2 - player.x(), context.canvas_h / 2 - player.y());
+		camera.tween(context.fixed_dt);
 	}
 }
