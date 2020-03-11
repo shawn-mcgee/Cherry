@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.LinkedList;
 import java.util.List;
 
+import blue.core.Debug;
 import blue.core.Engine;
 import blue.game.Sprite;
 import blue.geom.Vector;
@@ -37,7 +38,7 @@ public class Cherry {
 	}
 	
 	public static final void load_sprites(String index) {
-		System.out.print("[load_sprites '" + index + "']...");
+		Debug.log(Debug.INFO, Cherry.class, "load_sprites '" + index + "'...");
 		List<String> args0 = Util.parseFromFile(index, new LinkedList<String>());
 		for(String arg0: args0) {
 			if(!arg0.trim().isEmpty()) {
@@ -67,22 +68,19 @@ public class Cherry {
 				Sprite.load(name, path, w, h);
 			}
 		}
-		System.out.println("done");
 	}
 	
 	public static final void index_tiles(String index) {
-		System.out.print("[index_tiles '" + index + "']...");
+		Debug.log(Debug.INFO, Cherry.class, "index_tiles '" + index + "'...");
 		List<String> list = Util.parseFromFile(index, new LinkedList<String>());
 		for(String string: list)
 			Tile.load_as_tile(string);
-		System.out.println("done");
 	}
 	
 	public static final void index_walls(String index) {
-		System.out.print("[index_walls '" + index + "']...");
+		Debug.log(Debug.INFO, Cherry.class, "index_walls '" + index + "'...");
 		List<String> list = Util.parseFromFile(index, new LinkedList<String>());
 		for(String string: list)
 			Tile.load_as_wall(string);
-		System.out.println("done");
 	}
 }

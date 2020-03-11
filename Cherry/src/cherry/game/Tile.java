@@ -55,7 +55,7 @@ public class Tile {
 				(y + x),
 				(y - x)
 				);
-	}	
+	}
 	
 	public static final Vector2 localToPixel(Vector ij) {
 		return localToPixel(ij.x(), ij.y());

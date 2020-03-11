@@ -25,11 +25,12 @@ public class Game extends Scene {
 		
 		
 		room.add_entity(player = new Player());
-		camera.tween.set(.5f, .5f);
+		camera.tween.set(.1f, .1f);
 	}
 
 	@Override
 	public void onRender(RenderContext context) {
+		//context.g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		context.push();
 		context.mov(
 				(int)camera.camera_t.x(),

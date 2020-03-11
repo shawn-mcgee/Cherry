@@ -94,8 +94,8 @@ public class Cell implements Renderable, Updateable {
 	
 	protected static final Comparator<Entity>
 		z_order = (Entity a, Entity b) -> {
-			if(a.y() + a.size < b.y() + b.size) return -1;
-			if(a.y() + a.size > b.y() + b.size) return  1;
+			if(a.y() < b.y()) return -1;
+			if(a.y() > b.y()) return  1;
 			if(a.x() < b.x()) return -1;
 			if(a.x() > b.x()) return  1;
 			return 0;

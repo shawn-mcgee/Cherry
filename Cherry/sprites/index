@@ -9,3 +9,5 @@ name=marble_edge_1,path=marble_edge_1.png,w=128,h=128
 name=boring_pillar,path=boring_pillar.png,w=128,h=128
 name=marble_stairs_left,path=marble_stairs_left.png,w=128,h=128
 name=marble_stairs_right,path=marble_stairs_right.png,w=128,h=128
+name=null_tile,path=null.png,w=128,h=128
+name=null_wall,path=null.png,w=128,h=128
