@@ -26,8 +26,8 @@ public class Editor extends Scene {
 	protected float
 		scale = .5f;
 	
-	protected final Camera 
-		camera = new Camera();
+	protected final View 
+		camera = new View();
 	
 	protected Room
 		room;
@@ -108,7 +108,7 @@ public class Editor extends Scene {
 							}
 						}
 							
-						Cell cell = room.get_cell(i, j);					
+						Cell cell = room.cell(i, j);					
 						if(show_tiles && cell.tile != null) {
 							cell.tile.sprite.center(pixel.x(), pixel.y() + FULL_H);						
 							context.render(cell.tile.sprite);
@@ -127,7 +127,7 @@ public class Editor extends Scene {
 		context.font(new Font("Monospaced", Font.PLAIN, 16));
 		FontMetrics fm = context.g.getFontMetrics();
 		
-		Cell cell = room.get_cell(brush.i(), brush.j());
+		Cell cell = room.cell(brush.i(), brush.j());
 		String[] info = {
 			brush.mode_a + " [" + brush.i() + ", " + brush.j() + "]",
 			"Tile: " + (cell != null && cell.tile != null ? cell.tile.string : null),
@@ -328,7 +328,7 @@ public class Editor extends Scene {
 		protected Sprite
 			tile_cursor,
 			wall_cursor;
-		protected Camera
+		protected View
 			hotbar;
 		
 		public Brush() {		
@@ -339,7 +339,7 @@ public class Editor extends Scene {
 			mode_a = Mode.TILE;
 			mode_b = Mode.WALL;
 			
-			hotbar = new Camera();
+			hotbar = new View();
 			hotbar.tween.set(.001f, .001f);
 		}
 		

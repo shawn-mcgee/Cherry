@@ -1,13 +1,15 @@
 package cherry.game;
 
+import static cherry.game.Tile.snap;
+
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import blue.core.Updateable;
 import blue.geom.Vector2;
 import blue.util.Util;
 
-public class Room implements Updateable {
+public class Room implements Iterable<Entity> {
 	public static final int
 		DEFAULT_ROOM_W = 16,
 		DEFAULT_ROOM_H = 16;
@@ -15,10 +17,15 @@ public class Room implements Updateable {
 		w,
 		h;
 	protected Cell[][]
-		grid;
+		grid;	
+	protected final List<Entity>
+		list;
 	
-	protected List<Entity>
-		entities;
+	protected Room
+		north,
+		south,
+		east,
+		west;
 	
 	public Room() {
 		this(
@@ -34,47 +41,32 @@ public class Room implements Updateable {
 		for(int i = 0; i < this.w; i ++)
 			for(int j = 0; j < this.h; j ++)
 				grid[i][j] = new Cell(i, j, this);
-		this.entities = new LinkedList<>();
+		this.list = new LinkedList<>();
 	}
 	
-	public void add_entity(Entity entity) {
-		Cell cell = get_cell(entity.i(), entity.j());
+	public void add(Entity e) {
+		Cell cell = cell(e.local);
 		if(cell != null) {
-			entities.add   (entity);
-			cell.add_entity(entity);
-			entity.room = this;
+			e.setRoom(this);
+			list.add(e);
+			cell.add(e);
 		}
 	}
 	
-	public void del_entity(Entity entity) {
-		Cell cell = get_cell(entity.i(), entity.j());
+	public void del(Entity e) {
+		Cell cell = cell(e.local);
 		if(cell != null) {
-			entities.remove(entity);
-			cell.del_entity(entity);
-			entity.room = null;
+			list.remove(e);
+			cell.del   (e);
+			e.setRoom(null);
 		}
 	}
 	
 	public int w() { return w; }
 	public int h() { return h; }
 	
-	@Override
-	public void onUpdate(UpdateContext context) {
-		for(int j = 0; j < h; j ++)
-			for(int i = 0; i < w; i ++)
-				context.update(grid[i][j]);
-		for(int j = 0; j < h; j ++)
-			for(int i = 0; i < w; i ++)
-				if(grid[i][j].m_flag)
-					grid[i][j].handle_m_flag();
-		for(int j = 0; j < h; j ++)
-			for(int i = 0; i < w; i ++)
-				if(grid[i][j].s_flag)
-					grid[i][j].handle_s_flag();
-	}
-	
 	public void set_tile(int i, int j, Tile tile) {
-		Cell cell = get_cell(i, j);
+		Cell cell = cell(i, j);
 		if(cell != null) {
 			if(tile != null) {
 				if(cell.tile != null)
@@ -87,7 +79,7 @@ public class Room implements Updateable {
 	}
 	
 	public void set_wall(int i, int j, Tile wall) {
-		Cell cell = get_cell(i, j);
+		Cell cell = cell(i, j);
 		if(cell != null) {
 			if(wall != null) {
 				if(cell.wall != null)
@@ -99,7 +91,14 @@ public class Room implements Updateable {
 		}
 	}
 	
-	public Cell get_cell(int i, int j) {
+	public Cell cell(Vector2 local) {
+		int
+			i = snap(local.x()),
+			j = snap(local.y());
+		return cell(i, j);
+	}
+	
+	public Cell cell(int i, int j) {
 		if(
 				i >= 0 && i < w &&
 				j >= 0 && j < h ) {
@@ -108,7 +107,14 @@ public class Room implements Updateable {
 			return null;
 	}
 	
-	public Tile get_tile(int i, int j) {
+	public Tile tile(Vector2 local) {
+		int
+			i = snap(local.x()),
+			j = snap(local.y());
+		return tile(i, j);
+	}
+	
+	public Tile tile(int i, int j) {
 		if(
 				i >= 0 && i < w &&
 				j >= 0 && j < h ) {
@@ -117,7 +123,14 @@ public class Room implements Updateable {
 			return null;
 	}
 	
-	public Tile get_wall(int i, int j) {
+	public Tile wall(Vector2 local) {
+		int
+			i = snap(local.x()),
+			j = snap(local.y());
+		return wall(i, j);
+	}
+	
+	public Tile wall(int i, int j) {
 		if(
 				i >= 0 && i < w &&
 				j >= 0 && j < h ) {
@@ -233,10 +246,10 @@ public class Room implements Updateable {
 				String
 					cell = i + ", " + j + ":",
 					data = "";
-				Tile tile = this.get_tile(i, j);
+				Tile tile = this.tile(i, j);
 				if(tile != null)
 					data += (data.isEmpty() ? "" : ", ") + "tile=" + tile.string;
-				Tile wall = this.get_wall(i, j);
+				Tile wall = this.wall(i, j);
 				if(wall != null)
 					data += (data.isEmpty() ? "" : ", ") + "wall=" + wall.string;
 				
@@ -288,12 +301,17 @@ public class Room implements Updateable {
 									Math.max(this.h, j + 1)
 									);
 						if(tile != null)
-							this.set_tile(i, j, Tile.load_as_tile(tile));
+							this.set_tile(i, j, Tile.grab_tile(tile));
 						if(wall != null)
-							this.set_wall(i, j, Tile.load_as_wall(wall));
+							this.set_wall(i, j, Tile.grab_wall(wall));
 					}
 				}
 			}
 		}
+	}
+
+	@Override
+	public Iterator<Entity> iterator() {
+		return list.iterator();
 	}
 }

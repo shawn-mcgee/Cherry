@@ -4,18 +4,24 @@ import static cherry.game.Tile.FULL_H;
 import static cherry.game.Tile.FULL_W;
 import static cherry.game.Tile.localToPixel;
 import static cherry.game.Tile.pixelToLocal;
+import static cherry.game.Tile.snap;
+
+import java.awt.Color;
+import java.util.Collections;
+import java.util.Comparator;
 
 import blue.core.Engine;
 import blue.core.Scene;
 import blue.geom.Vector2;
 
-public class Game extends Scene {
-	protected final Camera
-		camera = new Camera();
+public class Dungeon extends Scene {
+	protected final View
+		camera = new View();
 	protected Room
 		room;
+	
 	protected Player
-		player;
+		player;	
 	
 	@Override
 	public void onAttach() {
@@ -24,13 +30,12 @@ public class Game extends Scene {
 		camera.set_camera(Engine.canvas().mid());
 		
 		
-		room.add_entity(player = new Player());
+		room.add(player = new Player());
 		camera.tween.set(.1f, .1f);
 	}
 
 	@Override
 	public void onRender(RenderContext context) {
-		//context.g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		context.push();
 		context.mov(
 				(int)camera.camera_t.x(),
@@ -60,15 +65,16 @@ public class Game extends Scene {
 							i >= 0 && i < room.w() &&
 							j >= 0 && j < room.h()
 							) {
-					Vector2 pixel = localToPixel(i, j);
+					Vector2 pixel = localToPixel(i, j);					
 						
-					Cell cell = room.get_cell(i, j);					
+					Cell cell = room.cell(i, j);					
 					if(cell.tile != null) {
 						cell.tile.sprite.center(pixel.x(), pixel.y() + FULL_H);						
 						context.render(cell.tile.sprite);
 					}
 				}
 			}
+		
 		for(float y = 0; y < dy; y += .5f)
 			for(float x = y % 1f; x < dx; x += 1f) {
 				int
@@ -80,22 +86,79 @@ public class Game extends Scene {
 							) {
 					Vector2 pixel = localToPixel(i, j);
 						
-					Cell cell = room.get_cell(i, j);					
+					Cell cell = room.cell(i, j);					
 					if(cell.wall != null) {
 						cell.wall.sprite.center(pixel.x(), pixel.y());					
 						context.render(cell.wall.sprite);
 					}
-					for(Entity entity: cell.entities)
-						context.render(entity);
+					
+					if(cell.s_flag)
+						handle_s_flag(cell);
+					for(Entity e: cell) {
+						context.render(e);
+						
+						context.color(Color.RED);
+						context.line(e.pixel, cell.pixel);
+					}
 				}
 			}
 	}
 	
 	@Override
 	public void onUpdate(UpdateContext context) {
-		context.update(room);
+		//Update Entities
+		for(int j = 0; j < room.h; j ++)
+			for(int i = 0; i < room.w; i ++) {
+				room.grid[i][j].detach();
+				room.grid[i][j].attach();
+				for(Entity e: room.grid[i][j])
+					context.update(e);
+			}
+		
+//		for(Entity e: room)
+//			context.update(e);
+		
+		//Handle m_flag
+		for(int j = 0; j < room.h; j ++)
+			for(int i = 0; i < room.w; i ++)
+				if(room.grid[i][j].m_flag)
+					handle_m_flag(room.grid[i][j]);
 
-		camera.set_target(context.canvas_w / 2 - player.x(), context.canvas_h / 2 - player.y());
+		camera.set_target(context.canvas_w / 2 - player.pixel.x(), context.canvas_h / 2 - player.pixel.y());
 		camera.tween(context.fixed_dt);
 	}
+	
+	public void handle_m_flag(Cell cell) {
+		int
+			i = snap(cell.local.x()),
+			j = snap(cell.local.y());
+		for(Entity e: cell) {
+			int
+				m = snap(e.local.x()),
+				n = snap(e.local.y());
+			if(i != m || j != n) {
+				Cell _cell = room.cell(m, n);
+				if(_cell != null) {
+					 cell.detach(e);
+					_cell.attach(e);
+				}
+			} else 
+				cell.s_flag();
+		}
+		cell.m_flag = false;
+	}
+	
+	public void handle_s_flag(Cell cell) {
+		Collections.sort(cell.list, z_order);
+		cell.s_flag = false;
+	}
+	
+	protected static final Comparator<Entity>
+		z_order = (Entity a, Entity b) -> {
+			if(a.pixel.y() < b.pixel.y()) return -1;
+			if(a.pixel.y() > b.pixel.y()) return  1;
+			if(a.pixel.x() < b.pixel.x()) return -1;
+			if(a.pixel.x() > b.pixel.x()) return  1;
+			return 0;
+		};
 }

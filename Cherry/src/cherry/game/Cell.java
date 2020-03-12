@@ -2,28 +2,28 @@ package cherry.game;
 
 import static cherry.game.Tile.localToPixel;
 
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import blue.core.Renderable;
-import blue.core.Updateable;
 import blue.geom.Vector2;
 
-public class Cell implements Renderable, Updateable {
-	public Room
-		room;
-	public Vector2
+public class Cell implements Iterable<Entity> {
+	public final Vector2
 		local,
 		pixel;
-	public Tile
+	public final Room
+		room;
+	
+	protected Tile
 		tile,
 		wall;
-	public List<Entity>
-		entities;
+	protected final List<Entity>
+		list,
+		attach,
+		detach;
 	
-	public boolean
+	protected boolean
 		m_flag,
 		s_flag;
 	
@@ -31,81 +31,56 @@ public class Cell implements Renderable, Updateable {
 		this.room = room;
 		this.local = new  Vector2(i, j);
 		this.pixel = localToPixel(i, j);
-		this.entities = new LinkedList<>();
+		
+		this.list = new LinkedList<>();
+		this.attach = new LinkedList<>();
+		this.detach = new LinkedList<>();
 	}
 	
-	public void add_entity(Entity entity) {
-		entities.add   (entity);
-		entity.cell = this;
+	public void add(Entity e) {
+		if(e.cell != this && list.add   (e)) {
+			e.setCell(this);
+			s_flag();
+		}
 	}
 	
-	public void del_entity(Entity entity) {
-		entities.remove(entity);
-		entity.cell = null;
+	public void del(Entity e) {
+		if(list.remove(e) && e.cell == this) {
+			e.setCell(null);
+		}
 	}
 	
-	public int i() { return (int)local.x(); }
-	public int j() { return (int)local.y(); }
+	public void attach(Entity e) {
+		attach.add(e);
+	}
 	
-	public float x() { return pixel.x(); }
-	public float y() { return pixel.y(); }
+	public void detach(Entity e) {
+		detach.add(e);
+	}
+	
+	public void attach() {
+		for(Entity e: attach)
+			add(e);
+		attach.clear();
+	}
+	
+	public void detach() {
+		for(Entity e: detach)
+			del(e);
+		detach.clear();
+	}
+	
+	public void m_flag() { m_flag = list.size() > 0; }
+	public void s_flag() { s_flag = list.size() > 1; }
 	
 	public void clear() {
-		entities.clear();
+		list.clear();
 		tile = null;
 		wall = null;
 	}
 
 	@Override
-	public void onRender(RenderContext context) {
-		//do nothing
-	}
-
-	@Override
-	public void onUpdate(UpdateContext context) {
-		for(Entity entity: entities) {
-			context.update(entity);
-			if(
-					i() != entity.i() ||
-					j() != entity.j() )
-				m_flag= true;
-		}
-	}
-	
-	public void handle_m_flag() {
-		for(Entity entity: entities)
-			if(
-					i() != entity.i() ||
-					j() != entity.j() ){
-				Cell cell = room.get_cell(
-						entity.i(), 
-						entity.j()
-						);
-				if(cell != null) {
-					this.entities.remove(entity);
-					cell.entities.add   (entity);
-					
-					entity.cell = cell                    ;
-					cell.s_flag = cell.entities.size() > 1;
-				}
-			}
-		m_flag = false;
-	}
-	
-	protected static final Comparator<Entity>
-		z_order = (Entity a, Entity b) -> {
-			if(a.y() < b.y()) return -1;
-			if(a.y() > b.y()) return  1;
-			if(a.x() < b.x()) return -1;
-			if(a.x() > b.x()) return  1;
-			return 0;
-		};
-	
-	public void handle_s_flag() {
-		Collections.sort(
-				entities,
-				z_order
-				);
-		s_flag = false;
+	public Iterator<Entity> iterator() {
+		return list.iterator();
 	}
 }

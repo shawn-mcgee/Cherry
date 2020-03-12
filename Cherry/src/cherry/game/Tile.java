@@ -27,19 +27,19 @@ public class Tile {
 		this.sprite = sprite;
 	}
 	
-	public static final Tile load_as_tile(String string) {
+	public static final Tile grab_tile(String string) {
 		Tile tile = TILE_INDEX.get(string);
 		if(tile == null)
 			TILE_INDEX.put(string, tile = new Tile(string, Sprite.fromName(string, null)));
 		return tile;
 	}
 	
-	public static final Tile load_as_wall(String string) {
+	public static final Tile grab_wall(String string) {
 		Tile wall = WALL_INDEX.get(string);
 		if(wall == null)
 			WALL_INDEX.put(string, wall = new Tile(string, Sprite.fromName(string, null)));
 		return wall;
-	}	
+	}
 	
 	public static final Vector2 localToPixel(float i, float j) {
 		return new Vector2(
@@ -63,5 +63,9 @@ public class Tile {
 	
 	public static final Vector2 pixelToLocal(Vector xy) {
 		return pixelToLocal(xy.x(), xy.y());
+	}
+	
+	public static int snap(float x) {
+		return (int)(x >= 0 ? x : x - (x % 1) - 1);
 	}
 }

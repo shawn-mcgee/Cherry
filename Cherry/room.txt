@@ -62,7 +62,6 @@
 5, 0:tile=marble_slab_1
 5, 3:tile=null_tile
 5, 4:tile=null_tile
-5, 5:tile=marble_slab_1
 5, 6:tile=marble_slab_1
 5, 7:tile=marble_slab_1
 5, 10:tile=marble_slab_1

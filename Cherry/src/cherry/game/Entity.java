@@ -1,76 +1,165 @@
 package cherry.game;
 
 import static cherry.game.Tile.localToPixel;
+import static cherry.game.Tile.pixelToLocal;
+import static cherry.game.Tile.snap;
 
-import java.awt.Color;
+import java.util.HashMap;
+import java.util.Map;
 
 import blue.core.Renderable;
 import blue.core.Updateable;
 import blue.geom.Vector;
 import blue.geom.Vector2;
-import blue.util.Copyable;
 import blue.util.Util;
 
 public class Entity implements Renderable, Updateable {
-	protected static final float
-		EPSILON = .001f;
+	public static final String
+		MAXIMUM_HEALTH = "maximum_health",
+		CURRENT_HEALTH = "current_health",
+		MOVEMENT_SPEED = "movement_speed",
+		SIZE           = "size";
 	protected static final float
 		SIN = (float)(Math.sin(Math.toRadians(45))),
-		COS = (float)(Math.cos(Math.toRadians(45)));
-	protected static final Vector2
-		NORTH = new Vector2(0, -1),
-		WEST  = new Vector2(-1, 0),
-		SOUTH = new Vector2(0,  1),
-		EAST  = new Vector2( 1, 0),		
-		NORTH_WEST = new Vector2(-COS, -SIN),
-		SOUTH_WEST = new Vector2(-COS,  SIN),
-		SOUTH_EAST = new Vector2( COS,  SIN),
-		NORTH_EAST = new Vector2( COS, -SIN);
+		COS = (float)(Math.cos(Math.toRadians(45))),
+		EPSILON = .001f,
+		FIXED_DT = 1f / 60f;
+	public static enum Facing {
+		NORTH(-COS, -SIN),
+		NORTH_EAST(0, -1),
+		EAST ( COS, -SIN),
+		SOUTH_EAST( 1, 0),
+		SOUTH( COS,  SIN),
+		SOUTH_WEST(0,  1),
+		WEST (-COS,  SIN),
+		NORTH_WEST(-1, 0);
+		
+		public final Vector2
+			vector;
+		
+		Facing(float x, float y) {
+			vector = new Vector2(x, y);
+		}
+	}
 	
-	public Room
+	protected Room
 		room;
-	public Cell
+	protected Cell
 		cell;
-	
-	public final Property[]
-		property;
 	
 	public final Vector2.Mutable
 		local = new Vector2.Mutable(),
-		pixel = new Vector2.Mutable(),
-		facing = new Vector2.Mutable();		
+		pixel = new Vector2.Mutable();
+	public Facing
+		facing = Facing.SOUTH;
 	
-	public Entity() {
-		property = new Property[Property.COUNT];
-		for(int i = 0; i < Property.COUNT; i ++)
-			property[i] = Property.DEFAULT[i].copy();
+	protected final Map<Class<?>, Map<String, Property<?>>>
+		map = new HashMap<>();
+	
+	protected final IntegerProperty
+		maximum_health = new IntegerProperty(1, 0, 1).attach(this, MAXIMUM_HEALTH),
+		current_health = new IntegerProperty(1, 0, 1).attach(this, CURRENT_HEALTH);
+	protected final FloatProperty
+		movement_speed = new FloatProperty( 2f, 0f, 6f).attach(this, MOVEMENT_SPEED),
+		size           = new FloatProperty(.2f, 0f,.5f).attach(this, SIZE          );
+	
+	public <T> Map<String, Property<?>> get(Class<T> type) {
+		Map<String, Property<?>> m = map.get(type);
+		if(m == null) 
+				map.put(type, m = new HashMap<>());
+		return m;
 	}
 	
-	@Override
-	public void onRender(RenderContext context) {
-		context.stroke(2);
-		context.color(Color.RED);	
-		
-		float size = property[Property.SIZE].total();		
-		Vector2
-			a = localToPixel(local.x() - size, local.y() - size),
-			b = localToPixel(local.x() + size, local.y() - size),
-			c = localToPixel(local.x() + size, local.y() + size),
-			d = localToPixel(local.x() - size, local.y() + size);
-		
-		context.line(a, b);
-		context.line(b, c);
-		context.line(c, d);
-		context.line(d, a);
+	@SuppressWarnings("unchecked")
+	public <T> Property<T> get(Class<T> type, String name) {
+		return (Property<T>)get(type).get(name);
 	}
 	
+	public <T> void add(Class<T> type, String name, Property<T> prop) {
+		get(type).put(name, prop);
+	}
+	
+	public <T> void del(Class<T> type, String name, Property<T> prop) {
+		if(prop != null)
+			get(type).remove(name, prop);
+		else
+			get(type).remove(name);
+	}
+	
+	public FloatProperty getFloatProperty(String name) {
+		return (FloatProperty)get(Float.class, name);
+	}
+	
+	public IntegerProperty getIntegerProperty(String name) {
+		return (IntegerProperty)get(Integer.class, name);
+	}
+	
+	public BooleanProperty getBooleanProperty(String name) {
+		return (BooleanProperty)get(Boolean.class, name);
+	}
+	
+	public void setPixel(Vector2 pixel) {
+		setPixel(pixel.x(), pixel.y());
+	}
+	
+	public void setPixel(float x, float y) {
+		pixel.set(x, y);
+		local.set(pixelToLocal(x, y));
+	}
+	
+	public void setLocal(Vector2 local) {
+		setLocal(local.x(), local.y());
+	}
+	
+	public void setLocal(float i, float j) {
+		local.set(i, j);
+		pixel.set(localToPixel(i, j));
+	}
+	
+	public Entity setRoom(Room room) {
+		if(this.room != null)
+			onLeaveRoom();
+		this.room = room;
+		if(this.room != null)
+			onEnterRoom();
+		return this;
+	}
+	
+	public Entity setCell(Cell cell) {
+		if(this.cell != null)
+			onLeaveCell();
+		this.cell = cell;
+		if(this.cell != null)
+			onEnterCell();
+		return this;
+	}
+	
+	public Room getRoom() {
+		return this.room;
+	}
+	
+	public Cell getCell() {
+		return this.cell;
+	}
+	
+	public void onEnterRoom() { }
+	public void onLeaveRoom() { }
+	public void onEnterCell() { }
+	public void onLeaveCell() { }
+	
 	@Override
-	public void onUpdate(UpdateContext context) {
+	public void onRender(RenderContext context) { }
+	@Override
+	public void onUpdate(UpdateContext context) { }
+	
+	
+	
+	public void move() {
 		float
-			speed = property[Property.MOVEMENT_SPEED].total(),
-			dx = speed * facing.x() * context.fixed_dt,
-			dy = speed * facing.y() * context.fixed_dt,
-			size = property[Property.SIZE].total();
+			speed = this.movement_speed.value(),
+			dx = speed * facing.vector.x() * FIXED_DT,
+			dy = speed * facing.vector.y() * FIXED_DT,
+			size = this.size.value();
 		
 		int
 			i0 = snap(local.x() - size + EPSILON),
@@ -82,114 +171,116 @@ public class Entity implements Renderable, Updateable {
 		
 		if(dx != 0) {
 			Tile
-				tile0 = room.get_tile(a, j0),
-				tile1 = room.get_tile(a, j1);
+				tile0 = room.tile(a, j0),
+				tile1 = room.tile(a, j1);
 			if(tile0 == null || tile1 == null)
 				dx = a - local.x() + (dx >= 0 ? - size : size + 1);
 		}
 		
 		if(dy != 0) {
 			Tile
-				tile0 = room.get_tile(i0, b),
-				tile1 = room.get_tile(i1, b);
+				tile0 = room.tile(i0, b),
+				tile1 = room.tile(i1, b);
 			if(tile0 == null || tile1 == null)
 				dy = b - local.y() + (dy >= 0 ? - size : size + 1);
 		}
 		
-		Vector.m_add(local, dx, dy);
+		Vector.m_add( local,  dx,  dy);
 		pixel.set(localToPixel(local));
+		
+		if(dx != 0 || dy != 0)
+			cell.m_flag();
 	}
 	
-	public static int snap(float x) {
-		return (int)(x >= 0 ? x : x - (x % 1) - 1);
+	public static interface Property<T> {
+		public T value();
 	}
 	
-	public float x() {
-		return pixel.x();
-	}
-	
-	public float y() {
-		return pixel.y();
-	}
-	
-	public int i() {
-		return snap(local.x());
-	}
-	
-	public int j() {
-		return snap(local.y());
-	}
-	
-	public static class Property implements Copyable<Property> {
-		public static final int
-			MAXIMUM_HEALTH = 0,
-			CURRENT_HEALTH = 1,
-			MOVEMENT_SPEED = 2,
-			SIZE           = 3,
-			COUNT = 4;
-		public static final Property
-			DEFAULT_MAXIMUM_HEALTH = new Property(   1, 0, 0,   1),
-			DEFAULT_CURRENT_HEALTH = new Property(   1, 0, 0,   1),
-			DEFAULT_MOVEMENT_SPEED = new Property(   2, 0, 0,   6),
-			DEFAULT_SIZE           = new Property(.25f, 0, 0, .5f);
-		public static final Property[]
-			DEFAULT = {
-				DEFAULT_MAXIMUM_HEALTH,
-				DEFAULT_CURRENT_HEALTH,
-				DEFAULT_MOVEMENT_SPEED,
-				DEFAULT_SIZE
-			};		
-		private float
+	public static class FloatProperty implements Property<Float> {
+		public float
 			value,
 			delta,
-			total,
 			min,
 			max;
 		
-		public Property(Property p) {
-			this(p.value, p.delta, p.min, p.max);
+		public FloatProperty() {
+			this(0f, 0f, 1f);
 		}
 		
-		public Property(float value, float delta, float min, float max) {
+		public FloatProperty(float value) {
+			this(value, 0f, 1f);
+		}
+		
+		public FloatProperty(float value, float min, float max) {
 			this.value = value;
-			this.delta = delta;
 			this.min = min;
 			this.max = max;
-			
-			this.total = Util.clamp(value + delta, min, max);
-		}
-		
-		public float value(float value) {			
-			return this.total = Util.clamp((this.value = value) + this.delta, this.min, this.max);			
-		}
-		
-		public float delta(float delta) {
-			return this.total = Util.clamp(this.value + (this.delta = delta), this.min, this.max);
-		}
-		
-		public float value() {
-			return value;
-		}
-		
-		public float delta() {
-			return delta;
-		}
-		
-		public float total() {
-			return total;
 		}
 
 		@Override
-		public Property copy() {
-			return new Property(this);
+		public Float value() {
+			return Util.clamp(value + delta, min, max);
+		}
+		
+		protected FloatProperty attach(Entity self, String name) {
+			self.add(Float.class, name, this);
+			return this;
 		}
 	}
 	
-	public static class Modifier {
+	public static class IntegerProperty implements Property<Integer> {
+		public int
+			value,
+			delta,
+			cache,
+			min,
+			max;
 		
+		public IntegerProperty() {
+			this(0, 0, 1);
+		}
+		
+		public IntegerProperty(int value) {
+			this(value, 0, 1);
+		}
+		
+		public IntegerProperty(int value, int min, int max) {
+			this.value = value;
+			this.min = min;
+			this.max = max;
+		}
+		
+		@Override
+		public Integer value() {
+			return Util.clamp(value + delta, min, max);
+		}
+		
+		protected IntegerProperty attach(Entity self, String name) {
+			self.add(Integer.class, name, this);
+			return this;
+		}
 	}
 	
-	public static class Status {
+	public static class BooleanProperty implements Property<Boolean> {
+		public boolean
+			value;
 		
-	}
+		public BooleanProperty() {
+			this(false);
+		}
+		
+		public BooleanProperty(boolean value) {
+			this.value = value;
+		}
+		
+		@Override
+		public Boolean value() {
+			return value;
+		}
+		
+		protected BooleanProperty attach(Entity self, String name) {
+			self.add(Boolean.class, name, this);
+			return this;
+		}
+	}	
 }

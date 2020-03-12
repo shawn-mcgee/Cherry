@@ -10,7 +10,7 @@ import blue.game.Sprite;
 import blue.geom.Vector;
 import blue.util.Util;
 import blue.util.Version;
-import cherry.game.Game;
+import cherry.game.Dungeon;
 import cherry.game.Tile;
 
 public class Cherry {
@@ -34,7 +34,7 @@ public class Cherry {
 		Engine.init();
 		
 		//Engine.setScene(new Editor());
-		Engine.setScene(new Game());
+		Engine.setScene(new Dungeon());
 	}
 	
 	public static final void load_sprites(String index) {
@@ -74,13 +74,13 @@ public class Cherry {
 		Debug.log(Debug.INFO, Cherry.class, "index_tiles '" + index + "'...");
 		List<String> list = Util.parseFromFile(index, new LinkedList<String>());
 		for(String string: list)
-			Tile.load_as_tile(string);
+			Tile.grab_tile(string);
 	}
 	
 	public static final void index_walls(String index) {
 		Debug.log(Debug.INFO, Cherry.class, "index_walls '" + index + "'...");
 		List<String> list = Util.parseFromFile(index, new LinkedList<String>());
 		for(String string: list)
-			Tile.load_as_wall(string);
+			Tile.grab_wall(string);
 	}
 }
