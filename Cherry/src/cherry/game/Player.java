@@ -7,7 +7,7 @@ public class Player extends Entity {
 	public Player() {
 		local.set(1.5f, 1.5f);
 		
-		property[Property.MOVEMENT_SPEED].value(  6f);
+		property[Property.MOVEMENT_SPEED].value(  4f);
 		property[Property.SIZE          ].value(.25f);
 	}
 	

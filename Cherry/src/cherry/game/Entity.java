@@ -13,6 +13,8 @@ import blue.util.Util;
 
 public class Entity implements Renderable, Updateable {
 	protected static final float
+		EPSILON = .001f;
+	protected static final float
 		SIN = (float)(Math.sin(Math.toRadians(45))),
 		COS = (float)(Math.cos(Math.toRadians(45)));
 	protected static final Vector2
@@ -36,7 +38,7 @@ public class Entity implements Renderable, Updateable {
 	public final Vector2.Mutable
 		local = new Vector2.Mutable(),
 		pixel = new Vector2.Mutable(),
-		facing = new Vector2.Mutable();
+		facing = new Vector2.Mutable();		
 	
 	public Entity() {
 		property = new Property[Property.COUNT];
@@ -69,49 +71,29 @@ public class Entity implements Renderable, Updateable {
 			dx = speed * facing.x() * context.fixed_dt,
 			dy = speed * facing.y() * context.fixed_dt,
 			size = property[Property.SIZE].total();
-		Tile
-			tile_x0 = null,
-			tile_x1 = null,
-			tile_y0 = null,
-			tile_y1 = null,
-			wall_x0 = null,
-			wall_x1 = null,
-			wall_y0 = null,
-			wall_y1 = null;		
-		int
-			a = (int)(local.x() + dx + Util.sign(dx) * size),
-			b = (int)(local.y() + dy + Util.sign(dy) * size);
 		
-		if (dx < 0) {
-			tile_x0 = room.get_tile((int)(local.x() + dx - size), (int)(local.y() - size));
-			tile_x1 = room.get_tile((int)(local.x() + dx - size), (int)(local.y() + size));
-			wall_x0 = room.get_wall((int)(local.x() + dx - size), (int)(local.y() - size));
-			wall_x1 = room.get_wall((int)(local.x() + dx - size), (int)(local.y() + size));		
-			if(tile_x0 == null || tile_x1 == null || wall_x0 != null || wall_x1 != null)
-				dx = (int)(a + 1 - local.x() + size);
-		} else if (dx > 0) {
-			tile_x0 = room.get_tile((int)(local.x() + dx + size), (int)(local.y() - size));
-			tile_x1 = room.get_tile((int)(local.x() + dx + size), (int)(local.y() + size));
-			wall_x0 = room.get_wall((int)(local.x() + dx + size), (int)(local.y() - size));
-			wall_x1 = room.get_wall((int)(local.x() + dx + size), (int)(local.y() + size));
-			if(tile_x0 == null || tile_x1 == null || wall_x0 != null || wall_x1 != null)
-				dx = (int)(a - local.x() - size);
+		int
+			i0 = snap(local.x() - size + EPSILON),
+			i1 = snap(local.x() + size - EPSILON),
+			j0 = snap(local.y() - size + EPSILON),
+			j1 = snap(local.y() + size - EPSILON),
+			a = snap(local.x() + dx + Util.sign(dx) * size),
+			b = snap(local.y() + dy + Util.sign(dy) * size);
+		
+		if(dx != 0) {
+			Tile
+				tile0 = room.get_tile(a, j0),
+				tile1 = room.get_tile(a, j1);
+			if(tile0 == null || tile1 == null)
+				dx = a - local.x() + (dx >= 0 ? - size : size + 1);
 		}
 		
-		if (dy < 0) {
-			tile_y0 = room.get_tile((int)(local.x() - size), (int)(local.y() + dy - size));
-			tile_y1 = room.get_tile((int)(local.x() + size), (int)(local.y() + dy - size));
-			wall_y0 = room.get_wall((int)(local.x() - size), (int)(local.y() + dy - size));
-			wall_y1 = room.get_wall((int)(local.x() + size), (int)(local.y() + dy - size));
-			if(tile_y0 == null || tile_y1 == null || wall_y0 != null || wall_y1 != null)
-				dy = (int)(b + 1 - local.y() + size);
-		} else if (dy > 0) {
-			tile_y0 = room.get_tile((int)(local.x() - size), (int)(local.y() + dy + size));
-			tile_y1 = room.get_tile((int)(local.x() + size), (int)(local.y() + dy + size));
-			wall_y0 = room.get_wall((int)(local.x() - size), (int)(local.y() + dy + size));
-			wall_y1 = room.get_wall((int)(local.x() + size), (int)(local.y() + dy + size));
-			if(tile_y0 == null || tile_y1 == null || wall_y0 != null || wall_y1 != null)
-				dy = (int)(b - local.y() - size);
+		if(dy != 0) {
+			Tile
+				tile0 = room.get_tile(i0, b),
+				tile1 = room.get_tile(i1, b);
+			if(tile0 == null || tile1 == null)
+				dy = b - local.y() + (dy >= 0 ? - size : size + 1);
 		}
 		
 		Vector.m_add(local, dx, dy);
@@ -119,7 +101,7 @@ public class Entity implements Renderable, Updateable {
 	}
 	
 	public static int snap(float x) {
-		return (int)(x - x % 1f);
+		return (int)(x >= 0 ? x : x - (x % 1) - 1);
 	}
 	
 	public float x() {
@@ -131,11 +113,11 @@ public class Entity implements Renderable, Updateable {
 	}
 	
 	public int i() {
-		return (int)local.x();
+		return snap(local.x());
 	}
 	
 	public int j() {
-		return (int)local.y();
+		return snap(local.y());
 	}
 	
 	public static class Property implements Copyable<Property> {
