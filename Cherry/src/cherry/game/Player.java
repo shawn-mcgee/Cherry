@@ -12,7 +12,7 @@ public class Player extends Entity {
 	public Player() {
 		local.set(1, 1);	
 		
-		this.movement_speed.value = .5f;
+		this.movement_speed.value = 3f;
 	}
 	
 	@Override

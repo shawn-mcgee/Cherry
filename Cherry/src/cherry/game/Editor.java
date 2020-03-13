@@ -13,9 +13,9 @@ import java.awt.FontMetrics;
 
 import blue.core.Engine;
 import blue.core.Input;
-import blue.core.Scene;
 import blue.game.Sprite;
 import blue.geom.Vector2;
+import cherry.core.Scene;
 
 public class Editor extends Scene {		
 	protected static final Color

@@ -15,7 +15,7 @@ public class Cell implements Iterable<Entity> {
 	public final Room
 		room;
 	
-	protected Tile
+	public Tile
 		tile,
 		wall;
 	protected final List<Entity>

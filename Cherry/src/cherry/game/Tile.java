@@ -8,7 +8,7 @@ import blue.geom.Vector;
 import blue.geom.Vector2;
 
 public class Tile {
-	protected static final Map<String, Tile>
+	public static final Map<String, Tile>
 		TILE_INDEX = new TreeMap<>(),
 		WALL_INDEX = new TreeMap<>();
 	public static final int
