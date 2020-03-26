@@ -13,9 +13,9 @@ import java.awt.FontMetrics;
 
 import blue.core.Engine;
 import blue.core.Input;
+import blue.core.Scene;
 import blue.game.Sprite;
 import blue.geom.Vector2;
-import cherry.core.Scene;
 
 public class Editor extends Scene {		
 	protected static final Color
@@ -184,7 +184,7 @@ public class Editor extends Scene {
 				Input.isKeyDn(Input.KEY_L_ALT) || 
 				Input.isKeyDn(Input.KEY_R_ALT) ){
 			switch(key) {
-				case Input.KEY_BQUOTE: show_grid = !show_grid; break;
+				case Input.KEY_BACK_QUOTE: show_grid = !show_grid; break;
 				case Input.KEY_1: show_tiles = !show_tiles; break;
 				case Input.KEY_2: show_walls = !show_walls; break;
 			}			
@@ -192,20 +192,20 @@ public class Editor extends Scene {
 				Input.isKeyDn(Input.KEY_L_SHIFT) || 
 				Input.isKeyDn(Input.KEY_R_SHIFT) ){
 			switch(key) {
-				case Input.KEY_EQUALS: room.increment(); break;
-				case Input.KEY_MINUS : room.decrement(); break;
+				case Input.KEY_M : room.increment(); break;
+				case Input.KEY_N : room.decrement(); break;
 				
 				case Input.KEY_W:
-				case Input.KEY_UP_ARROW: room.translate(-1, -1); break;
+				case Input.KEY_UP_ARROW: room.translate(0, -1); break;
 				
 				case Input.KEY_S:
-				case Input.KEY_DN_ARROW: room.translate( 1,  1); break;
+				case Input.KEY_DN_ARROW: room.translate(0,  1); break;
 				
 				case Input.KEY_A:
-				case Input.KEY_L_ARROW : room.translate(-1,  1); break;
+				case Input.KEY_L_ARROW : room.translate(-1, 0); break;
 				
 				case Input.KEY_D:
-				case Input.KEY_R_ARROW : room.translate( 1, -1); break;
+				case Input.KEY_R_ARROW : room.translate( 1, 0); break;
 
 				case Input.KEY_Q: room.rotate_l(); break;
 				case Input.KEY_E: room.rotate_r(); break;
@@ -215,8 +215,6 @@ public class Editor extends Scene {
 			}
 		} else
 			switch(key) {
-				case Input.KEY_EQUALS: zoom_increment(); break;
-				case Input.KEY_MINUS : zoom_decrement(); break;
 				
 				case Input.KEY_W: 
 				case Input.KEY_UP_ARROW: camera.mov_target(0,  FULL_H * camera.camera_s.y()); break;

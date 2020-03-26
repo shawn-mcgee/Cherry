@@ -9,6 +9,7 @@ import static cherry.game.Tile.snap;
 import java.awt.Color;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Random;
 
 import blue.core.Engine;
 import blue.core.Scene;
@@ -21,7 +22,7 @@ public class Dungeon extends Scene {
 		room;
 	
 	protected Player
-		player;	
+		player;
 	
 	@Override
 	public void onAttach() {
@@ -29,6 +30,20 @@ public class Dungeon extends Scene {
 		room.load("room.txt");
 		camera.set_camera(Engine.canvas().mid());
 		
+		Random random = new Random();
+		for(int i = 0; i < 0; i ++) {			
+			Minion minion = new Minion();
+			int
+				x,
+				y;
+			do {
+				x = random.nextInt(room.w());
+				y = random.nextInt(room.h());
+			} while(room.tile(x, y) == null || room.wall(x, y) != null || room.cell(x, y).count() > 1);
+			
+			minion.setLocal(x + random.nextFloat(), y + random.nextFloat());
+			room.add(minion);
+		}
 		
 		room.add(player = new Player());
 		camera.tween.set(.1f, .1f);
@@ -97,7 +112,7 @@ public class Dungeon extends Scene {
 					for(Entity e: cell) {
 						context.render(e);
 						
-						context.color(Color.RED);
+						context.color(Color.BLUE);
 						context.line(e.pixel, cell.pixel);
 					}
 				}

@@ -14,33 +14,13 @@ import blue.geom.Vector2;
 import blue.util.Util;
 
 public class Entity implements Renderable, Updateable {
+	public static final float
+		EPSILON = .001f;
 	public static final String
 		MAXIMUM_HEALTH = "maximum_health",
 		CURRENT_HEALTH = "current_health",
 		MOVEMENT_SPEED = "movement_speed",
 		SIZE           = "size";
-	protected static final float
-		SIN = (float)(Math.sin(Math.toRadians(45))),
-		COS = (float)(Math.cos(Math.toRadians(45))),
-		EPSILON = .001f,
-		FIXED_DT = 1f / 60f;
-	public static enum Facing {
-		NORTH(-COS, -SIN),
-		NORTH_EAST(0, -1),
-		EAST ( COS, -SIN),
-		SOUTH_EAST( 1, 0),
-		SOUTH( COS,  SIN),
-		SOUTH_WEST(0,  1),
-		WEST (-COS,  SIN),
-		NORTH_WEST(-1, 0);
-		
-		public final Vector2
-			vector;
-		
-		Facing(float x, float y) {
-			vector = new Vector2(x, y);
-		}
-	}
 	
 	protected Room
 		room;
@@ -57,11 +37,69 @@ public class Entity implements Renderable, Updateable {
 		map = new HashMap<>();
 	
 	protected final IntegerProperty
-		maximum_health = new IntegerProperty(1, 0, 1).attach(this, MAXIMUM_HEALTH),
-		current_health = new IntegerProperty(1, 0, 1).attach(this, CURRENT_HEALTH);
+		maximum_health = new IntegerProperty(1, 0, 1),
+		current_health = new IntegerProperty(1, 0, 1);
 	protected final FloatProperty
-		movement_speed = new FloatProperty( 2f, 0f, 6f).attach(this, MOVEMENT_SPEED),
-		size           = new FloatProperty(.2f, 0f,.5f).attach(this, SIZE          );
+		movement_speed = new FloatProperty( 2f, 0f, 6f),
+		size           = new FloatProperty(.2f, 0f,.5f);
+	
+	public Entity() {
+		add(Integer.class, Entity.MAXIMUM_HEALTH, maximum_health);
+		add(Integer.class, Entity.CURRENT_HEALTH, current_health);
+		
+		add(Float.class, Entity.MOVEMENT_SPEED, movement_speed);
+		add(Float.class, Entity.SIZE          , size          );
+	}
+	
+	public void turn(Facing facing) {
+		if(this.facing != facing) {
+			this.facing = facing;
+			this.onTurn();
+		}
+	}
+	
+	public void move(Facing facing) {
+		float
+			speed = this.movement_speed.value(),
+			dx = speed * facing.vector.x() * FIXED_DT,
+			dy = speed * facing.vector.y() * FIXED_DT,
+			size = this.size.value();		
+		int
+			i0 = snap(local.x() - size + EPSILON),
+			i1 = snap(local.x() + size - EPSILON),
+			j0 = snap(local.y() - size + EPSILON),
+			j1 = snap(local.y() + size - EPSILON),
+			a = snap(local.x() + dx + Util.sign(dx) * size),
+			b = snap(local.y() + dy + Util.sign(dy) * size);
+		
+		if(dx != 0) {
+			Tile
+				tile0 = room.tile(a, j0),
+				tile1 = room.tile(a, j1);
+			if(tile0 == null || tile1 == null)
+				dx = a - local.x() + (dx >= 0 ? - size : size + 1);
+		}
+		
+		if(dy != 0) {
+			Tile
+				tile0 = room.tile(i0, b),
+				tile1 = room.tile(i1, b);
+			if(tile0 == null || tile1 == null)
+				dy = b - local.y() + (dy >= 0 ? - size : size + 1);
+		}
+		
+		Vector.m_add( local,  dx,  dy);
+		pixel.set(localToPixel(local));
+		
+		if(dx != 0 || dy != 0) {
+			cell.m_flag();
+			this.onMove();
+		}
+	}
+	
+	public void move() {
+		move(facing);
+	}
 	
 	public <T> Map<String, Property<?>> get(Class<T> type) {
 		Map<String, Property<?>> m = map.get(type);
@@ -105,6 +143,9 @@ public class Entity implements Renderable, Updateable {
 	public void setPixel(float x, float y) {
 		pixel.set(x, y);
 		local.set(pixelToLocal(x, y));
+		
+		if(cell != null)
+			cell.m_flag();
 	}
 	
 	public void setLocal(Vector2 local) {
@@ -114,6 +155,9 @@ public class Entity implements Renderable, Updateable {
 	public void setLocal(float i, float j) {
 		local.set(i, j);
 		pixel.set(localToPixel(i, j));
+		
+		if(cell != null)
+			cell.m_flag();
 	}
 	
 	public Entity setRoom(Room room) {
@@ -142,55 +186,17 @@ public class Entity implements Renderable, Updateable {
 		return this.cell;
 	}
 	
-	public void onEnterRoom() { }
-	public void onLeaveRoom() { }
-	public void onEnterCell() { }
-	public void onLeaveCell() { }
-	
 	@Override
 	public void onRender(RenderContext context) { }
 	@Override
-	public void onUpdate(UpdateContext context) { }
+	public void onUpdate(UpdateContext context) { }	
 	
-	
-	
-	public void move() {
-		float
-			speed = this.movement_speed.value(),
-			dx = speed * facing.vector.x() * FIXED_DT,
-			dy = speed * facing.vector.y() * FIXED_DT,
-			size = this.size.value();
-		
-		int
-			i0 = snap(local.x() - size + EPSILON),
-			i1 = snap(local.x() + size - EPSILON),
-			j0 = snap(local.y() - size + EPSILON),
-			j1 = snap(local.y() + size - EPSILON),
-			a = snap(local.x() + dx + Util.sign(dx) * size),
-			b = snap(local.y() + dy + Util.sign(dy) * size);
-		
-		if(dx != 0) {
-			Tile
-				tile0 = room.tile(a, j0),
-				tile1 = room.tile(a, j1);
-			if(tile0 == null || tile1 == null)
-				dx = a - local.x() + (dx >= 0 ? - size : size + 1);
-		}
-		
-		if(dy != 0) {
-			Tile
-				tile0 = room.tile(i0, b),
-				tile1 = room.tile(i1, b);
-			if(tile0 == null || tile1 == null)
-				dy = b - local.y() + (dy >= 0 ? - size : size + 1);
-		}
-		
-		Vector.m_add( local,  dx,  dy);
-		pixel.set(localToPixel(local));
-		
-		if(dx != 0 || dy != 0)
-			cell.m_flag();
-	}
+	public void onTurn() { }
+	public void onMove() { }
+	public void onEnterRoom() { }
+	public void onLeaveRoom() { }
+	public void onEnterCell() { }
+	public void onLeaveCell() { }	
 	
 	public static interface Property<T> {
 		public T value();
@@ -221,11 +227,6 @@ public class Entity implements Renderable, Updateable {
 		public Float value() {
 			return Util.clamp(value + delta, min, max);
 		}
-		
-		protected FloatProperty attach(Entity self, String name) {
-			self.add(Float.class, name, this);
-			return this;
-		}
 	}
 	
 	public static class IntegerProperty implements Property<Integer> {
@@ -254,11 +255,6 @@ public class Entity implements Renderable, Updateable {
 		public Integer value() {
 			return Util.clamp(value + delta, min, max);
 		}
-		
-		protected IntegerProperty attach(Entity self, String name) {
-			self.add(Integer.class, name, this);
-			return this;
-		}
 	}
 	
 	public static class BooleanProperty implements Property<Boolean> {
@@ -277,10 +273,111 @@ public class Entity implements Renderable, Updateable {
 		public Boolean value() {
 			return value;
 		}
+	}	
+	
+	public static abstract class Modifier<T extends Property<?>> {
+		public abstract void onAttach(T property);
+		public abstract void onDetach(T property);
+	}
+	
+	public static class FloatModifier extends Modifier<FloatProperty> {
+		public float
+			add = 0f,
+			mul = 1f;
 		
-		protected BooleanProperty attach(Entity self, String name) {
-			self.add(Boolean.class, name, this);
+		public FloatModifier mul(float mul) {
+			this.mul = mul;
 			return this;
 		}
-	}	
+		
+		public FloatModifier add(float add) {
+			this.add = add;
+			return this;
+		}		
+
+		@Override
+		public void onAttach(FloatProperty property) {
+			float
+				add = this.add                 ,
+				mul = this.mul * property.value;
+			property.delta += (add + mul);
+		}
+
+		@Override
+		public void onDetach(FloatProperty property) {
+			float
+				add = this.add                 ,
+				mul = this.mul * property.value;
+			property.delta -= (add + mul);
+		}		
+	}
+	
+	public static class IntegerModifier extends Modifier<IntegerProperty> {
+		public float
+			add = 0f,
+			mul = 1f;
+		
+		public IntegerModifier mul(float mul) {
+			this.mul = mul;
+			return this;
+		}
+		
+		public IntegerModifier add(float add) {
+			this.add = add;
+			return this;
+		}		
+
+		@Override
+		public void onAttach(IntegerProperty property) {
+			float
+				add = this.add                 ,
+				mul = this.mul * property.value;
+			property.delta += (add + mul);
+		}
+
+		@Override
+		public void onDetach(IntegerProperty property) {
+			float
+				add = this.add                 ,
+				mul = this.mul * property.value;
+			property.delta -= (add + mul);
+		}		
+	}
+	
+	public static abstract class Behavior {
+		
+	}
+	
+	public static class Status {
+		public String
+			name;
+		
+		
+		
+		
+		
+		
+	}
+
+	protected static final float
+		SIN = (float)(Math.sin(Math.toRadians(45))),
+		COS = (float)(Math.cos(Math.toRadians(45))),
+		FIXED_DT = 1f / 60f;
+	public static enum Facing {
+		NORTH(-COS, -SIN),
+		NORTH_EAST(0, -1),
+		EAST ( COS, -SIN),
+		SOUTH_EAST( 1, 0),
+		SOUTH( COS,  SIN),
+		SOUTH_WEST(0,  1),
+		WEST (-COS,  SIN),
+		NORTH_WEST(-1, 0);
+		
+		public final Vector2
+			vector;
+		
+		Facing(float x, float y) {
+			vector = new Vector2(x, y);
+		}
+	}
 }

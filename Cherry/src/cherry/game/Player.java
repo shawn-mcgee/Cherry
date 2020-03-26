@@ -10,7 +10,7 @@ import blue.geom.Vector2;
 public class Player extends Entity {
 	
 	public Player() {
-		local.set(1, 1);	
+		this.setLocal(.5f, .5f);
 		
 		this.movement_speed.value = 3f;
 	}
@@ -18,7 +18,7 @@ public class Player extends Entity {
 	@Override
 	public void onRender(RenderContext context) {
 		context.stroke(2);
-		context.color(Color.RED);	
+		context.color(Color.GREEN);	
 		
 		float size = this.size.value();
 		Vector2
@@ -48,24 +48,24 @@ public class Player extends Entity {
 				break;
 			case 1:  //w
 			case 11: //w + a + d
-				facing = Facing.NORTH; move(); break;
+				turn(Facing.NORTH); move(); break;
 			case 2:  //a
 			case 7:  //w + a + s
-				facing = Facing.WEST ; move(); break;
+				turn(Facing.WEST);  move(); break;
 			case 4:  //s
 			case 14: //a + s + d
-				facing = Facing.SOUTH; move(); break;
+				turn(Facing.SOUTH); move(); break;
 			case 8:  //d
 			case 13: //w + s + d
-				facing = Facing.EAST ; move(); break;
+				turn(Facing.EAST);  move(); break;
 			case 3:  //w + a
-				facing = Facing.NORTH_WEST; move(); break;
+				turn(Facing.NORTH_WEST); move(); break;
 			case 6:  //a + s
-				facing = Facing.SOUTH_WEST; move(); break;
+				turn(Facing.SOUTH_WEST); move(); break;
 			case 12: //s + d
-				facing = Facing.SOUTH_EAST; move(); break;
+				turn(Facing.SOUTH_EAST); move(); break;
 			case 9:  //w + d
-				facing = Facing.NORTH_EAST; move(); break;
+				turn(Facing.NORTH_EAST); move(); break;
 		}		
 		super.onUpdate(context);
 	}

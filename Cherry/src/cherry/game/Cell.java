@@ -15,7 +15,7 @@ public class Cell implements Iterable<Entity> {
 	public final Room
 		room;
 	
-	public Tile
+	protected Tile
 		tile,
 		wall;
 	protected final List<Entity>
@@ -35,6 +35,10 @@ public class Cell implements Iterable<Entity> {
 		this.list = new LinkedList<>();
 		this.attach = new LinkedList<>();
 		this.detach = new LinkedList<>();
+	}
+	
+	public int count() {
+		return list.size();
 	}
 	
 	public void add(Entity e) {

@@ -1,4 +1,4 @@
-package cherry.core;
+package cherry.ui;
 
 import java.util.LinkedList;
 import java.util.List;
