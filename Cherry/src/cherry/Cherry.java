@@ -15,6 +15,7 @@ public class Cherry {
 		Engine.loadConfiguration("engine.cfg");
 		
 		Engine.setProperty(Engine.WINDOW_TITLE, VERSION);
+		Engine.setProperty(Engine.ENGINE_FPS, 0);
 		Engine.setProperty(Engine.DEBUG, true);
 		
 		Loader.load();

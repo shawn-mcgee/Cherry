@@ -39,7 +39,7 @@ public class Dungeon extends Scene {
 			do {
 				x = random.nextInt(room.w());
 				y = random.nextInt(room.h());
-			} while(room.tile(x, y) == null || room.wall(x, y) != null || room.cell(x, y).count() > 1);
+			} while(room.tile(x, y) == null || room.wall(x, y) != null);
 			
 			minion.setLocal(x + random.nextFloat(), y + random.nextFloat());
 			room.add(minion);
