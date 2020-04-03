@@ -3,7 +3,6 @@ package cherry.game;
 import java.util.LinkedList;
 import java.util.List;
 
-import blue.core.Debug;
 import blue.game.Sprite;
 import blue.util.Util;
 
@@ -20,7 +19,7 @@ public class Loader {
 	}	
 	
 	public static final void load_sprites(String index) {
-		Debug.log(Debug.INFO, Loader.class, "load_sprites '" + index + "'...");
+		System.out.println("load_sprites '" + index + "'...");
 		List<String> args0 = Util.parseFromFile(index, new LinkedList<String>());
 		for(String arg0: args0) {
 			if(!arg0.trim().isEmpty()) {
@@ -53,14 +52,14 @@ public class Loader {
 	}
 	
 	public static final void index_tiles(String index) {
-		Debug.log(Debug.INFO, Loader.class, "index_tiles '" + index + "'...");
+		System.out.println("index_tiles '" + index + "'...");
 		List<String> list = Util.parseFromFile(index, new LinkedList<String>());
 		for(String string: list)
 			Tile.grab_tile(string);
 	}
 	
 	public static final void index_walls(String index) {
-		Debug.log(Debug.INFO, Loader.class, "index_walls '" + index + "'...");
+		System.out.println("index_walls '" + index + "'...");
 		List<String> list = Util.parseFromFile(index, new LinkedList<String>());
 		for(String string: list)
 			Tile.grab_wall(string);
