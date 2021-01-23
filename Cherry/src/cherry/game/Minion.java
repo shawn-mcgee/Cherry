@@ -1,16 +1,16 @@
 package cherry.game;
 
-import static cherry.game.Tile.localToPixel;
+import static cherry.game.Tile.*;
 
 import java.awt.Color;
 
-import blue.geom.Vector2;
+import blue.math.Vector2;
 
 public class Minion extends Entity {
 	
 	
 	@Override
-	public void onRender(RenderContext context) {
+	public void render(RenderContext context) {
 		context.stroke(2);
 		context.color(Color.RED);
 		
@@ -28,7 +28,7 @@ public class Minion extends Entity {
 	}
 	
 	@Override
-	public void onUpdate(UpdateContext context) {
+	public void update(UpdateContext context) {
 		move();
 	}
 	

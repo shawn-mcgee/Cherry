@@ -1,17 +1,14 @@
 package cherry.game;
 
-import static cherry.game.Tile.localToPixel;
-import static cherry.game.Tile.pixelToLocal;
-import static cherry.game.Tile.snap;
+import static cherry.game.Tile.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import blue.core.Renderable;
 import blue.core.Updateable;
-import blue.geom.Vector;
-import blue.geom.Vector2;
-import blue.util.Util;
+import blue.math.Vector;
+import blue.math.Vector2;
 
 public class Entity implements Renderable, Updateable {
 	public static final float
@@ -69,8 +66,8 @@ public class Entity implements Renderable, Updateable {
 			i1 = snap(local.x() + size - EPSILON),
 			j0 = snap(local.y() - size + EPSILON),
 			j1 = snap(local.y() + size - EPSILON),
-			a = snap(local.x() + dx + Util.sign(dx) * size),
-			b = snap(local.y() + dy + Util.sign(dy) * size);
+			a = snap(local.x() + dx + blue.math.Math.sign(dx) * size),
+			b = snap(local.y() + dy + blue.math.Math.sign(dy) * size);
 		
 		if(dx != 0) {
 			Tile
@@ -187,9 +184,9 @@ public class Entity implements Renderable, Updateable {
 	}
 	
 	@Override
-	public void onRender(RenderContext context) { }
+	public void render(RenderContext context) { }
 	@Override
-	public void onUpdate(UpdateContext context) { }	
+	public void update(UpdateContext context) { }
 	
 	public void onTurn() { }
 	public void onMove() { }
@@ -225,7 +222,7 @@ public class Entity implements Renderable, Updateable {
 
 		@Override
 		public Float value() {
-			return Util.clamp(value + delta, min, max);
+			return blue.math.Math.clamp(value + delta, min, max);
 		}
 	}
 	
@@ -253,7 +250,7 @@ public class Entity implements Renderable, Updateable {
 		
 		@Override
 		public Integer value() {
-			return Util.clamp(value + delta, min, max);
+			return blue.math.Math.clamp(value + delta, min, max);
 		}
 	}
 	

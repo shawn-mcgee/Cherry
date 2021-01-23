@@ -5,12 +5,14 @@ import java.util.List;
 
 import blue.core.Renderable.RenderContext;
 import blue.core.Updateable.UpdateContext;
-import blue.geom.Box;
-import blue.geom.Layout;
-import blue.geom.Region2;
-import blue.geom.Vector2;
-import blue.util.Forward;
-import blue.util.Reverse;
+import blue.math.Box;
+import blue.math.Layout;
+import blue.math.Region2;
+import blue.math.Vector2;
+import cherry.util.Forward;
+import cherry.util.Forward.ForwardIterable;
+import cherry.util.Reverse;
+import cherry.util.Reverse.ReverseIterable;
 
 public class Node implements Forward<Node>, Reverse<Node> {
 	protected final Layout.Mutable
@@ -58,7 +60,7 @@ public class Node implements Forward<Node>, Reverse<Node> {
 	}
 	
 	public void resize(Box<?> parent) {
-		layout.m_region(bounds, parent);	
+		layout.m_region(parent, bounds);
 		onResize();		
 		for(Node node: forward())
 			node.resize(bounds);		

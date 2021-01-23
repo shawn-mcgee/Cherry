@@ -1,12 +1,12 @@
 package cherry.game;
 
-import static cherry.game.Tile.localToPixel;
+import static cherry.game.Tile.*;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import blue.geom.Vector2;
+import blue.math.Vector2;
 
 public class Cell implements Iterable<Entity> {
 	public final Vector2

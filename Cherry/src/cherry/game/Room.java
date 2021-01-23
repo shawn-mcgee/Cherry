@@ -1,13 +1,13 @@
 package cherry.game;
 
-import static cherry.game.Tile.snap;
+import static cherry.game.Tile.*;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import blue.geom.Vector2;
-import blue.util.Util;
+import blue.math.Vector2;
+import blue.util.FileUtility;
 
 public class Room implements Iterable<Entity> {
 	public static final int
@@ -148,7 +148,7 @@ public class Room implements Iterable<Entity> {
 	public void resize(int w, int h) {
 		int
 			_w = w > 0 ? w : 1,
-			_h = h > 0 ? h : 1;		
+			_h = h > 0 ? h : 1;
 		if(_w != this.w || _h != this.h) {
 			int
 				min_w = Math.min(_w, this.w),
@@ -257,11 +257,11 @@ public class Room implements Iterable<Entity> {
 					list.add(cell + data);
 				}
 			}
-		Util.printToFile(path, false, list);
+		FileUtility.printToFile(path, false, list);
 	}
 	
 	public void load(String path) {
-		List<String> list = Util.parseFromFile(path, new LinkedList<>());		
+		List<String> list = FileUtility.parseFromFile(path, new LinkedList<>());		
 		this.clear();
 		
 		for(String line: list) {
@@ -272,7 +272,7 @@ public class Room implements Iterable<Entity> {
 					String
 						cell = line.substring(0, k),
 						data = line.substring(++ k);
-					Vector2 v = Vector2.parseVector2(cell);
+					Vector2 v = Vector2.fromString(cell);
 					int
 						i = (int)v.x(),
 						j = (int)v.y();			

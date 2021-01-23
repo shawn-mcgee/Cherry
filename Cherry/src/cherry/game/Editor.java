@@ -1,21 +1,17 @@
 package cherry.game;
 
-import static cherry.game.Tile.FULL_H;
-import static cherry.game.Tile.FULL_W;
-import static cherry.game.Tile.HALF_H;
-import static cherry.game.Tile.HALF_W;
-import static cherry.game.Tile.localToPixel;
-import static cherry.game.Tile.pixelToLocal;
+import static cherry.game.Tile.*;
 
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 
-import blue.core.Engine;
 import blue.core.Input;
 import blue.core.Scene;
-import blue.game.Sprite;
-import blue.geom.Vector2;
+import blue.core.Sprite;
+import blue.core.Stage;
+import blue.math.Vector2;
+import blue.util.Debug;
 
 public class Editor extends Scene {		
 	protected static final Color
@@ -50,7 +46,7 @@ public class Editor extends Scene {
 	
 	@Override
 	public void onAttach() {
-		camera.set_camera(Engine.canvas().mid());
+		camera.set_camera(Stage.canvas().mid());
 		camera.tween.set(.001f, .001f);
 		room = new Room();
 		
@@ -65,12 +61,12 @@ public class Editor extends Scene {
 	
 	@Override
 	public void onRender(RenderContext context) {
-		context.push();
-			context.mov(
+		context = context.push();
+			context.translate(
 					(int)camera.camera_t.x(),
 					(int)camera.camera_t.y()
 					);
-			context.sca(camera.camera_s);
+			context.scale(camera.camera_s);
 			
 			Vector2				
 				v0 = pixelToLocal(camera.mouseToPixel(0, 0)), //top l view in local coords				
@@ -103,25 +99,25 @@ public class Editor extends Scene {
 								case 1: sprite = sprite1; break;
 							}
 							if(sprite != null) {
-								sprite .center(pixel.x(), pixel.y() + HALF_H);
-								context.render(sprite);
+								sprite .align(pixel.x(), pixel.y() + HALF_H);
+								sprite.render(context);
 							}
 						}
 							
 						Cell cell = room.cell(i, j);					
 						if(show_tiles && cell.tile != null) {
-							cell.tile.sprite.center(pixel.x(), pixel.y() + FULL_H);						
-							context.render(cell.tile.sprite);
+							cell.tile.sprite.align(pixel.x(), pixel.y() + FULL_H);						
+							cell.tile.sprite.render(context);
 						}					
 						if(show_walls && cell.wall != null) {
-							cell.wall.sprite.center(pixel.x(), pixel.y());						
-							context.render(cell.wall.sprite);
+							cell.wall.sprite.align(pixel.x(), pixel.y());						
+							cell.wall.sprite.render(context);
 						}
 					}
 				}		
 
 		brush.render_cursor(context);
-		context.pop();		
+		context = context.pop();
 		brush.render_hotbar(context);
 		
 		context.font(new Font("Monospaced", Font.PLAIN, 16));
@@ -157,7 +153,7 @@ public class Editor extends Scene {
 				);
 		context.color(debug_foreground);
 		for(int i = 0; i < info.length; i ++)
-			context.text(info[i], x, y += fm_h);
+			context.string(info[i], x, y += fm_h);
 	}	
 	
 	@Override
@@ -404,15 +400,15 @@ public class Editor extends Scene {
 			}
 		}
 		
-		public void render_cursor(RenderContext context) {					
+		public void render_cursor(RenderContext context) {
 			switch(mode_a) {
 				case TILE:
-					tile_cursor.center(x(), y() + HALF_H);					
-					context.render(tile_cursor);
+					tile_cursor.align(x(), y() + HALF_H);
+					tile_cursor.render(context);
 					break;					
 				case WALL:
-					wall_cursor.center(x(), y()         );
-					context.render(wall_cursor);
+					wall_cursor.align(x(), y()         );
+					wall_cursor.render(context);
 					break;
 			}
 		}
@@ -430,8 +426,8 @@ public class Editor extends Scene {
 					FULL_W, 2 * FULL_H,
 					true);
 			
-			context.push();						
-				context.mov(
+			context = context.push();	
+				context.translate(
 						context.canvas_w / 2          + (int)hotbar.camera_t.x(),
 						context.canvas_h - 2 * FULL_H + (int)hotbar.camera_t.y()
 						);
@@ -439,18 +435,18 @@ public class Editor extends Scene {
 			switch(mode_a) {
 				case TILE:
 					for(int i = 0; i < tile_brushes.length; i ++) {
-						tile_brushes[i].sprite.center(i * FULL_W, FULL_H);
-						context.render(tile_brushes[i].sprite);
+						tile_brushes[i].sprite.align(i * FULL_W, FULL_H);
+						tile_brushes[i].sprite.render(context);
 					}
 					break;					
 				case WALL:
 					for(int i = 0; i < wall_brushes.length; i ++) {
-						wall_brushes[i].sprite.center(i * FULL_W, FULL_H);
-						context.render(wall_brushes[i].sprite);
+						wall_brushes[i].sprite.align(i * FULL_W, FULL_H);
+						wall_brushes[i].sprite.render(context);
 					} 
 					break;
 			}
-			context.pop();
+			context = context.pop();
 		}
 		
 		public float x() { return pixel.x(); }

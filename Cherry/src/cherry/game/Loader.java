@@ -3,8 +3,9 @@ package cherry.game;
 import java.util.LinkedList;
 import java.util.List;
 
-import blue.game.Sprite;
-import blue.util.Util;
+import blue.core.Sprite;
+import blue.util.FileUtility;
+import blue.util.StringUtility;
 
 public class Loader {
 	public static final String
@@ -20,7 +21,7 @@ public class Loader {
 	
 	public static final void load_sprites(String index) {
 		System.out.println("load_sprites '" + index + "'...");
-		List<String> args0 = Util.parseFromFile(index, new LinkedList<String>());
+		List<String> args0 = FileUtility.parseFromFile(index, new LinkedList<String>());
 		for(String arg0: args0) {
 			if(!arg0.trim().isEmpty()) {
 				String[] args1 = arg0.split("\\,");
@@ -40,8 +41,8 @@ public class Loader {
 						switch(var) {
 							case "name": name = val; break;
 							case "path": path = val; break;
-							case "w": w = Util.stringToInt(val); break;
-							case "h": h = Util.stringToInt(val); break;
+							case "w": w = StringUtility.stringToInt(val); break;
+							case "h": h = StringUtility.stringToInt(val); break;
 						}
 					}
 				}
@@ -53,14 +54,14 @@ public class Loader {
 	
 	public static final void index_tiles(String index) {
 		System.out.println("index_tiles '" + index + "'...");
-		List<String> list = Util.parseFromFile(index, new LinkedList<String>());
+		List<String> list = FileUtility.parseFromFile(index, new LinkedList<String>());
 		for(String string: list)
 			Tile.grab_tile(string);
 	}
 	
 	public static final void index_walls(String index) {
 		System.out.println("index_walls '" + index + "'...");
-		List<String> list = Util.parseFromFile(index, new LinkedList<String>());
+		List<String> list = FileUtility.parseFromFile(index, new LinkedList<String>());
 		for(String string: list)
 			Tile.grab_wall(string);
 	}

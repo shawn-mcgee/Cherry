@@ -1,11 +1,11 @@
 package cherry.game;
 
-import static cherry.game.Tile.localToPixel;
+import static cherry.game.Tile.*;
 
 import java.awt.Color;
 
 import blue.core.Input;
-import blue.geom.Vector2;
+import blue.math.Vector2;
 
 public class Player extends Entity {
 	
@@ -16,7 +16,7 @@ public class Player extends Entity {
 	}
 	
 	@Override
-	public void onRender(RenderContext context) {
+	public void render(RenderContext context) {
 		context.stroke(2);
 		context.color(Color.GREEN);	
 		
@@ -34,7 +34,7 @@ public class Player extends Entity {
 	}
 	
 	@Override
-	public void onUpdate(UpdateContext context) {
+	public void update(UpdateContext context) {
 		int
 			w = Input.isKeyDn(Input.KEY_W) ? 1 : 0,
 			a = Input.isKeyDn(Input.KEY_A) ? 2 : 0,
@@ -67,6 +67,6 @@ public class Player extends Entity {
 			case 9:  //w + d
 				turn(Facing.NORTH_EAST); move(); break;
 		}		
-		super.onUpdate(context);
+		super.update(context);
 	}
 }

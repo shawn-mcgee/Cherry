@@ -1,7 +1,7 @@
 package cherry.game;
 
-import blue.geom.Vector;
-import blue.geom.Vector2;
+import blue.math.Vector;
+import blue.math.Vector2;
 
 public class View {
 	public final Vector2.Mutable

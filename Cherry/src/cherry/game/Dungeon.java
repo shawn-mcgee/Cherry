@@ -1,19 +1,15 @@
 package cherry.game;
 
-import static cherry.game.Tile.FULL_H;
-import static cherry.game.Tile.FULL_W;
-import static cherry.game.Tile.localToPixel;
-import static cherry.game.Tile.pixelToLocal;
-import static cherry.game.Tile.snap;
+import static cherry.game.Tile.*;
 
 import java.awt.Color;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Random;
 
-import blue.core.Engine;
 import blue.core.Scene;
-import blue.geom.Vector2;
+import blue.core.Stage;
+import blue.math.Vector2;
 
 public class Dungeon extends Scene {
 	protected final View
@@ -28,7 +24,7 @@ public class Dungeon extends Scene {
 	public void onAttach() {
 		room = new Room();
 		room.load("room.txt");
-		camera.set_camera(Engine.canvas().mid());
+		camera.set_camera(Stage.canvas().mid());
 		
 		Random random = new Random();
 		for(int i = 0; i < 0; i ++) {			
@@ -51,12 +47,12 @@ public class Dungeon extends Scene {
 
 	@Override
 	public void onRender(RenderContext context) {
-		context.push();
-		context.mov(
+		context = context.push();
+		context.translate(
 				(int)camera.camera_t.x(),
 				(int)camera.camera_t.y()
 				);
-		context.sca(camera.camera_s);
+		context.scale(camera.camera_s);
 		
 		Vector2				
 			v0 = pixelToLocal(camera.mouseToPixel(0, 0)), //top l view in local coords				
@@ -84,8 +80,8 @@ public class Dungeon extends Scene {
 						
 					Cell cell = room.cell(i, j);					
 					if(cell.tile != null) {
-						cell.tile.sprite.center(pixel.x(), pixel.y() + FULL_H);						
-						context.render(cell.tile.sprite);
+						cell.tile.sprite.align(pixel.x(), pixel.y() + FULL_H);
+						cell.tile.sprite.render(context);
 					}
 				}
 			}
@@ -103,20 +99,21 @@ public class Dungeon extends Scene {
 						
 					Cell cell = room.cell(i, j);					
 					if(cell.wall != null) {
-						cell.wall.sprite.center(pixel.x(), pixel.y());					
-						context.render(cell.wall.sprite);
+						cell.wall.sprite.align(pixel.x(), pixel.y());					
+						cell.wall.sprite.render(context);
 					}
 					
 					if(cell.s_flag)
 						handle_s_flag(cell);
 					for(Entity e: cell) {
-						context.render(e);
+						e.render(context);
 						
 						context.color(Color.BLUE);
 						context.line(e.pixel, cell.pixel);
 					}
 				}
 			}
+		context = context.pop();
 	}
 	
 	@Override
@@ -127,7 +124,7 @@ public class Dungeon extends Scene {
 				room.grid[i][j].detach();
 				room.grid[i][j].attach();
 				for(Entity e: room.grid[i][j])
-					context.update(e);
+					e.update(context);
 			}
 		
 //		for(Entity e: room)
